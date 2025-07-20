@@ -15,7 +15,7 @@ import { closeTooltip, openTooltip } from '../../store/tooltip';
 import { openContextMenu } from '../../store/contextMenu';
 import { useMergeRefs } from '@floating-ui/react';
 
-const getColor = (rarity: string): { text: string; background: string } => {
+export const getColor = (rarity: string): { text: string; background: string } => {
   switch (rarity.toLowerCase()) {
     case 'rare': return { text: '#0ea5e9', background: 'radial-gradient(#00000000, #0ea5e920)' };
     case 'epic': return { text: '#db2777', background: 'radial-gradient(#00000000, #be185d25)' };
@@ -54,12 +54,8 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
         isSlotWithItem(item, inventoryType !== InventoryType.SHOP)
           ? {
               inventory: inventoryType,
-              item: {
-                name: item.name,
-                slot: item.slot,
-                rarity: item.rarity || 'common'
-              },
-              image: item?.name && `url(${getItemUrl(item) || 'none'}`,
+              item: item,
+              image: item?.name && getItemUrl(item),
             }
           : null,
       canDrag,
@@ -74,6 +70,8 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
         isOver: monitor.isOver(),
       }),
       drop: (source) => {
+        const audio = new Audio('/drag.wav');
+        audio.play()
         dispatch(closeTooltip());
         switch (source.inventory) {
           case InventoryType.SHOP:
@@ -146,28 +144,58 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
       } as React.CSSProperties}
     >
       {isSlotWithItem(item) && (
-        <div className={`p-1.5 text-[#a8a8a8] text-xs`}>
-          <img src={`${item?.name ? getItemUrl(item as SlotWithItem) : 'none'}`} className='absolute w-[70px] h-[70px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10'/>
-          <div className='leading-3 font-[350]'>
-            <p className='absolute top-[5px] right-[5px] text-[10px] font-medium' style={{ color: item.rarity === 'common' ? '#ffffff' : `${getColor(item.rarity as string).text}` }}>{item.rarity?.toUpperCase()}</p>
+        <div className="p-1.5 text-[#a8a8a8] text-xs relative w-full h-full cursor-pointer"
+        onMouseEnter={() => {
+            timerRef.current = window.setTimeout(() => {
+              dispatch(openTooltip({ item, inventoryType }));
+            }, 500) as unknown as number;
+        }}
+        onMouseLeave={() => {
+          dispatch(closeTooltip());
+          if (timerRef.current) {
+            clearTimeout(timerRef.current);
+            timerRef.current = null;
+          }
+        }}>
+          <img
+            src={`${item?.name ? getItemUrl(item as SlotWithItem) : 'none'}`}
+            className="absolute w-[70px] h-[70px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0"
+            alt={item.name}
+          />
+
+          <div className="leading-3 font-[350] relative z-10">
+            <p
+              className="absolute top-0 right-0 text-[10px] font-medium"
+              style={{
+                color:
+                  item.rarity === 'common'
+                    ? '#ffffff'
+                    : getColor(item.rarity as string).text
+              }}
+            >
+              {item.rarity?.toUpperCase()}
+            </p>
             <p>{item.count > 1 ? item.count.toLocaleString('en-us') + `x` : ''}</p>
-            <p className='text-[11px]'>
+            <p className="text-[11px]">
               {item.weight > 0
                 ? item.weight >= 1000
                   ? `${(item.weight / 1000).toLocaleString('en-us', {
-                    minimumFractionDigits: 1,
-                  })}kg `
+                      minimumFractionDigits: 1,
+                    })}kg `
                   : `${item.weight.toLocaleString('en-us', {
-                    minimumFractionDigits: 1,
-                  })}g `
+                      minimumFractionDigits: 1,
+                    })}g `
                 : ''}
             </p>
           </div>
-          <p className="absolute text-white w-1/2 bottom-[7px] left-[7px] font-semibold">{item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name}</p>
+          <p className="absolute text-white w-1/2 bottom-[7px] left-[7px] font-semibold z-10">
+            {item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name}
+          </p>
         </div>
       )}
     </div>
   );
+
 };
 
 export default React.memo(React.forwardRef(InventorySlot));

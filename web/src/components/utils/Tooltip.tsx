@@ -7,7 +7,10 @@ const Tooltip: React.FC = () => {
   const hoverData = useAppSelector((state) => state.tooltip);
 
   const { refs, context, floatingStyles } = useFloating({
-    middleware: [flip(), shift(), offset({ mainAxis: 10, crossAxis: 10 })],
+    middleware: [flip(), shift(), offset(({ rects }) => ({
+      mainAxis: -rects.floating.width / 2,
+      crossAxis: 15,
+    }))],
     open: hoverData.open,
     placement: 'right-start',
   });

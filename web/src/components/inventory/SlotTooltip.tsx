@@ -24,16 +24,17 @@ const SlotTooltip: React.ForwardRefRenderFunction<
   return (
     <>
       {!itemData ? (
-        <div className="tooltip-wrapper" ref={ref} style={style}>
-          <div className="tooltip-header-wrapper">
-            <p>{item.name}</p>
-          </div>
-          <Divider />
+        <div ref={ref} style={style}>
+          <div className="metadata">
+                <p className="value">{item.name}</p>
+            </div>
         </div>
       ) : (
-        <div style={{ ...style }} className="tooltip-wrapper" ref={ref}>
-          <div className="tooltip-header-wrapper">
-            <p>{item.metadata?.label || itemData.label || item.name}</p>
+        <div style={{ ...style }} ref={ref} className='flex flex-col gap-1'>
+          <div>
+            <div className="metadata">
+              <p className='value'>{item.metadata?.label || itemData.label || item.name}</p>
+            </div>
             {inventoryType === 'crafting' ? (
               <div className="tooltip-crafting-duration">
                 <ClockIcon />
@@ -43,10 +44,10 @@ const SlotTooltip: React.ForwardRefRenderFunction<
               <p>{item.metadata?.type}</p>
             )}
           </div>
-          <Divider />
           {description && (
-            <div className="tooltip-description">
-              <ReactMarkdown className="tooltip-markdown">{description}</ReactMarkdown>
+            <div className="metadata">
+              <p className='label'>{(Locale.description || 'Description').toUpperCase()}:</p>
+              <p className='value'>{description}</p>
             </div>
           )}
           {inventoryType !== 'crafting' ? (
@@ -57,32 +58,28 @@ const SlotTooltip: React.ForwardRefRenderFunction<
                 </p>
               )}
               {item.metadata?.ammo !== undefined && (
-                <p>
-                  {Locale.ui_ammo}: {item.metadata.ammo}
-                </p>
+                <div className="metadata">
+                  <p className='label'>{(Locale.ui_ammo || 'Ammo').toUpperCase()}:</p>
+                  <p className='value'>{item.metadata.ammo}</p>
+                </div>
               )}
-              {ammoName && (
-                <p>
-                  {Locale.ammo_type}: {ammoName}
-                </p>
-              )}
+              {typeof item.metadata === 'object' &&
+              Object.entries(item.metadata).map(([key, val]) => {
+                if (typeof val === 'object' && val?.show && typeof val.show === 'object') {
+                  return (
+                    <div className="metadata" key={key}>
+                      <p className="label">{val.show.label?.toUpperCase() || key.toUpperCase()}:</p>
+                      <p className="value">{val.show.value}</p>
+                    </div>
+                  );
+                }
+                return null;
+              })}
               {item.metadata?.serial && (
-                <p>
-                  {Locale.ui_serial}: {item.metadata.serial}
-                </p>
-              )}
-              {item.metadata?.components && item.metadata?.components[0] && (
-                <p>
-                  {Locale.ui_components}:{' '}
-                  {(item.metadata?.components).map((component: string, index: number, array: []) =>
-                    index + 1 === array.length ? Items[component]?.label : Items[component]?.label + ', '
-                  )}
-                </p>
-              )}
-              {item.metadata?.weapontint && (
-                <p>
-                  {Locale.ui_tint}: {item.metadata.weapontint}
-                </p>
+                <div className="metadata">
+                  <p className='label'>{(Locale.ui_serial || 'Serial number').toUpperCase()}:</p>
+                  <p className='value'>{item.metadata.serial}</p>
+                </div>
               )}
               {additionalMetadata.map((data: { metadata: string; value: string }, index: number) => (
                 <Fragment key={`metadata-${index}`}>

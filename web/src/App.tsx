@@ -25,25 +25,21 @@ debugData([
         maxWeight: 5000,
         items: [
           {
-            slot: 4,
+            slot: 1,
             name: 'water',
             weight: 100,
             count: 1,
-            metadata: { description: 'Generic item description' },
+            metadata: { description: 'Refreshing water', ammo: '7.76' },
             rarity: 'uncommon'
           },
-          { slot: 5, name: 'water', weight: 100, count: 1 },
-          {
-            slot: 6,
-            name: 'backwoods',
-            weight: 100,
-            rarity: 'rare',
-            count: 1,
-            metadata: {
-              label: 'Russian Cream',
-              imageurl: 'https://i.imgur.com/2xHhTTz.png',
-            },
-          },
+          { slot: 5, name: 'burger', weight: 250, count: 4, rarity: 'rare', metadata: {
+            description: 'Delicious burger',
+            serial: '78545184ASXA4548',
+            rating: { 
+              value: 15, 
+              show: { label: 'RATING', value: 15 } 
+            }
+          }}
         ],
       },
       rightInventory: {
