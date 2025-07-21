@@ -7,7 +7,7 @@ import { Locale } from '../../store/locale';
 import { isSlotWithItem } from '../../helpers';
 import { setClipboard } from '../../utils/setClipboard';
 import { useAppDispatch, useAppSelector } from '../../store';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Menu, MenuItem } from '../utils/menu/Menu';
 import Fade from '../utils/transitions/Fade';
 import { InventoryType, SlotWithItem } from '../../typings';
@@ -187,6 +187,10 @@ const SplitContainer: React.FC<{
 }> = ({ data, close, split }) => {
   const itemAmount = useAppSelector(selectItemAmount);
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (data) dispatch(setItemAmount(1));
+  }, [data])
 
   const inputHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
     event.target.valueAsNumber =

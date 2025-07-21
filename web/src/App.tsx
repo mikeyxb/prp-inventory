@@ -19,7 +19,7 @@ debugData([
       leftInventory: {
         id: 'test',
         type: 'player',
-        slots: 50,
+        slots: 32,
         label: 'Bob Smith',
         weight: 3000,
         maxWeight: 5000,
@@ -32,14 +32,16 @@ debugData([
             metadata: { description: 'Refreshing water' },
             rarity: 'uncommon'
           },
-          { slot: 5, name: 'burger', weight: 1000, count: 4, rarity: 'rare', metadata: { description: 'Delicious burger' }}
+          { slot: 3, name: 'armour', weight: 2000, count: 2, rarity: 'uncommon', metadata: { description: 'Bulletprof' } },
+          { slot: 4, name: 'garbage', weight: 600, count: 5, rarity: 'epic', metadata: { description: 'Stinks!!' } },
+          { slot: 5, name: 'burger', weight: 1000, count: 1, rarity: 'rare', metadata: { description: 'Delicious burger' }}
         ],
       },
       rightInventory: {
         id: 'shop',
         type: 'crafting',
-        slots: 5000,
-        label: 'Bob Smith',
+        slots: 12,
+        label: 'Crafting',
         weight: 3000,
         maxWeight: 5000,
         items: [
@@ -49,9 +51,8 @@ debugData([
             weight: 500,
             price: 300,
             ingredients: {
-              iron: 5,
-              copper: 12,
-              powersaw: 0.1,
+              garbage: 5,
+              armour: 2
             },
             metadata: {
               description: 'Simple lockpick that breaks easily and can pick basic door locks',

@@ -13,10 +13,34 @@ export const Items: {
   },
   burger: {
     name: 'burger',
-    close: false,
+    close: true,
     label: 'BURGR',
     stack: true,
-    usable: false,
+    usable: true,
     count: 0,
   },
+  lockpick: {
+    name: 'lockpick',
+    close: true,
+    label: 'Lockpick',
+    stack: true,
+    usable: true,
+    count: 0
+  },
+  armour: {
+    name: 'armour',
+    close: false,
+    label: 'Armour',
+    stack: true,
+    usable: true,
+    count: 0,
+  },
+  garbage: {
+    name: 'garbage',
+    close: false,
+    label: 'Garbage',
+    stack: true,
+    usable: true,
+    count: 0,
+  }
 };

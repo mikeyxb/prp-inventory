@@ -13,7 +13,7 @@ const LeftInventory: React.FC = () => {
     })),
   };
 
-  return <InventoryGrid inventory={inventoryWithDefaultRarity} />;
+  return <InventoryGrid inventory={inventoryWithDefaultRarity} inv={'left'} />;
 };
 
 export default LeftInventory;

@@ -7,7 +7,6 @@ import { onBuy } from '../../dnd/onBuy';
 import { Items } from '../../store/items';
 import { canCraftItem, canPurchaseItem, getItemUrl, isSlotWithItem } from '../../helpers';
 import { onUse } from '../../dnd/onUse';
-import { Locale } from '../../store/locale';
 import { onCraft } from '../../dnd/onCraft';
 import useNuiEvent from '../../hooks/useNuiEvent';
 import { ItemsPayload } from '../../reducers/refreshSlots';
@@ -30,19 +29,25 @@ interface SlotProps {
   inventoryType: Inventory['type'];
   inventoryGroups: Inventory['groups'];
   item: Slot;
+  query: string;
 }
 
 const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> = (
-  { item, inventoryId, inventoryType, inventoryGroups },
+  { item, inventoryId, inventoryType, inventoryGroups, query },
   ref
 ) => {
   const manager = useDragDropManager();
   const dispatch = useAppDispatch();
   const timerRef = useRef<number | null>(null);
 
+  const matchesQuery = (item: Slot | null, query: string = '') => {
+    if (!item || typeof item.name !== 'string') return true; // Return true if slot is empty
+    return (item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name).toLowerCase().includes(query.toLowerCase());
+  };
+
   const canDrag = useCallback(() => {
-    return canPurchaseItem(item, { type: inventoryType, groups: inventoryGroups }) && canCraftItem(item, inventoryType);
-  }, [item, inventoryType, inventoryGroups]);
+    return canPurchaseItem(item, { type: inventoryType, groups: inventoryGroups }) && canCraftItem(item, inventoryType) && matchesQuery(item, query);
+  }, [item, inventoryType, inventoryGroups, query]);
 
   const [{ isDragging }, drag] = useDrag<DragSource, void, { isDragging: boolean }>(
     () => ({
@@ -51,7 +56,7 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
         isDragging: monitor.isDragging(),
       }),
       item: () =>
-        isSlotWithItem(item, inventoryType !== InventoryType.SHOP)
+        isSlotWithItem(item, inventoryType !== InventoryType.SHOP) && matchesQuery(item, query)
           ? {
               inventory: inventoryType,
               item: item,
@@ -60,7 +65,7 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
           : null,
       canDrag,
     }),
-    [inventoryType, item]
+    [inventoryType, item, canDrag, query]
   );
 
   const [{ isOver }, drop] = useDrop<DragSource, void, { isOver: boolean }>(
@@ -135,15 +140,15 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
       className={`relative w-[115px] h-[115px] rounded-[3px] border border-transparent item-slot-border
         [background:radial-gradient(#00000050,_#31313150)] hover:[background:radial-gradient(#00000050,_#42424250)]`}
       style={{
-        background: item.rarity !== 'common' ? getColor(item.rarity as string).background : '',
-        '--borderColor': getColor(item.rarity as string).text,
+        background: item.rarity !== 'common' && matchesQuery(item, query) ? getColor(item.rarity as string).background : '',
+        '--borderColor': matchesQuery(item, query) ? getColor(item.rarity as string).text : '',
         filter:
           !canPurchaseItem(item, { type: inventoryType, groups: inventoryGroups }) || !canCraftItem(item, inventoryType)
             ? 'brightness(80%) grayscale(100%)'
             : undefined
       } as React.CSSProperties}
     >
-      {isSlotWithItem(item) && (
+      {isSlotWithItem(item) && matchesQuery(item, query) && (
         <div className="p-1.5 text-[#a8a8a8] text-xs relative w-full h-full cursor-pointer"
         onMouseEnter={() => {
             timerRef.current = window.setTimeout(() => {

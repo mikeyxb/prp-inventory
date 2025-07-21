@@ -1,5 +1,5 @@
 import { Inventory, InventoryType, ItemData, Slot, SlotWithItem, State } from '../typings';
-import { isEqual } from 'lodash';
+import { has, isEqual } from 'lodash';
 import { store } from '../store';
 import { Items } from '../store/items';
 import { imagepath } from '../store/imagepath';
@@ -69,6 +69,9 @@ export const canCraftItem = (item: Slot, inventoryType: string) => {
 
           return false;
         }
+        
+        // Edited??
+        if (count <= playerItem.count) return true;
       }
     });
 
