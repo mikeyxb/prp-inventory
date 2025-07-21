@@ -46,6 +46,7 @@ const Inventory: React.FC = () => {
         <div>
           <LeftInventory />
           <Tooltip />
+          <InventoryContext />
         </div>
       </Fade>
       <InventoryHotbar />

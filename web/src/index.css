@@ -63,6 +63,13 @@ body {
   transition: all 200ms;
 }
 
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
 ::-webkit-scrollbar {
   width: 3px;
 }
@@ -88,7 +95,7 @@ body {
 }
 
 .metadata {
-  background: linear-gradient(90deg, #000000d0, #000000);
+  background: linear-gradient(90deg, #000000d0, #000000e0);
   border: 1px solid transparent;
   border-radius: 4px;
   padding: 8px 12px;

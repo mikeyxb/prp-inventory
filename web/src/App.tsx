@@ -29,17 +29,10 @@ debugData([
             name: 'water',
             weight: 100,
             count: 1,
-            metadata: { description: 'Refreshing water', ammo: '7.76' },
+            metadata: { description: 'Refreshing water' },
             rarity: 'uncommon'
           },
-          { slot: 5, name: 'burger', weight: 250, count: 4, rarity: 'rare', metadata: {
-            description: 'Delicious burger',
-            serial: '78545184ASXA4548',
-            rating: { 
-              value: 15, 
-              show: { label: 'RATING', value: 15 } 
-            }
-          }}
+          { slot: 5, name: 'burger', weight: 1000, count: 4, rarity: 'rare', metadata: { description: 'Delicious burger' }}
         ],
       },
       rightInventory: {

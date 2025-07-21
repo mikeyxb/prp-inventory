@@ -13,7 +13,6 @@ const InventoryGrid: React.FC<{ inventory: Inventory }> = ({ inventory }) => {
     [inventory.maxWeight, inventory.items]
   );
   const [page, setPage] = useState(0);
-  const containerRef = useRef(null);
   const { ref, entry } = useIntersection({ threshold: 0.5 });
   const isBusy = useAppSelector((state) => state.inventory.isBusy);
 

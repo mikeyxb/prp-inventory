@@ -216,7 +216,7 @@ export const MenuComponent = React.forwardRef<HTMLButtonElement, MenuProps & Rea
                   <FloatingFocusManager context={context} modal={true} initialFocus={refs.floating}>
                     <div
                       ref={refs.setFloating}
-                      className="context-menu-list"
+                      className="flex flex-col min-w-[130px] bg-black/65 text-white border border-neutral-700 outline-none rounded p-1"
                       style={{ ...floatingStyles, ...styles }}
                       {...getFloatingProps()}
                     >
@@ -253,7 +253,7 @@ export const MenuItem = React.forwardRef<
       ref={useMergeRefs([item.ref, forwardedRef])}
       type="button"
       role="menuitem"
-      className="context-menu-item"
+      className="outline-none hover:bg-lime-500/50 rounded py-1 duration-200 text-left px-2"
       tabIndex={isActive ? 0 : -1}
       disabled={disabled}
       {...menu.getItemProps({

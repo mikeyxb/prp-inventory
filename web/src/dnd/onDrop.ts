@@ -5,11 +5,15 @@ import { DragSource, DropTarget, InventoryType, SlotWithItem } from '../typings'
 import { moveSlots, stackSlots, swapSlots } from '../store/inventory';
 import { Items } from '../store/items';
 
-export const onDrop = (source: DragSource, target?: DropTarget) => {
+export const onDrop = (source: DragSource, target?: DropTarget, splitting?: boolean) => {
   const { inventory: state } = store.getState();
 
-  const { sourceInventory, targetInventory } = getTargetInventory(state, source.inventory, target?.inventory);
-
+  let { sourceInventory, targetInventory } = getTargetInventory(state, source.inventory, target?.inventory);
+  
+  if (splitting) {
+    targetInventory = sourceInventory;
+  }
+  
   const sourceSlot = sourceInventory.items[source.item.slot - 1] as SlotWithItem;
 
   const sourceData = Items[sourceSlot.name];
@@ -29,7 +33,7 @@ export const onDrop = (source: DragSource, target?: DropTarget) => {
 
   const targetSlot = target
     ? targetInventory.items[target.item.slot - 1]
-    : findAvailableSlot(sourceSlot, sourceData, targetInventory.items);
+    : findAvailableSlot(sourceSlot, sourceData, targetInventory.items, splitting);
 
   if (targetSlot === undefined) return console.error('Target slot undefined!');
 
