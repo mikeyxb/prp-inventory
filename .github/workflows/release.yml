@@ -60,6 +60,7 @@ jobs:
         run: |
           mkdir -p ./temp/prp_inventory
           mkdir -p ./temp/prp_inventory/web
+          cp -r ./client.lua ./temp/prp_inventory
           cp -r ./web/build ./temp/prp_inventory/web/build
           cd ./temp && zip -r ../prp_inventory.zip ./prp_inventory
 
