@@ -1,7 +1,7 @@
 import { ItemData } from '../typings/item';
 
 export const Items: {
-  [key: string]: ItemData | undefined;
+  [key: string]: ItemData;
 } = {
   water: {
     name: 'water',
@@ -14,6 +14,7 @@ export const Items: {
   burger: {
     name: 'burger',
     close: true,
+    rarity: 'uncommon',
     label: 'BURGR',
     stack: true,
     usable: true,
@@ -23,14 +24,16 @@ export const Items: {
     name: 'lockpick',
     close: true,
     label: 'Lockpick',
+    rarity: 'rare',
     stack: true,
     usable: true,
-    count: 0
+    count: 0,
   },
   armour: {
     name: 'armour',
     close: false,
     label: 'Armour',
+    rarity: 'epic',
     stack: true,
     usable: true,
     count: 0,
@@ -39,8 +42,9 @@ export const Items: {
     name: 'garbage',
     close: false,
     label: 'Garbage',
+    rarity: 'legendary',
     stack: true,
     usable: true,
     count: 0,
-  }
+  },
 };

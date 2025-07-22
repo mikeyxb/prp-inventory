@@ -69,7 +69,7 @@ export const canCraftItem = (item: Slot, inventoryType: string) => {
 
           return false;
         }
-        
+
         // Edited??
         if (count <= playerItem.count) return true;
       }

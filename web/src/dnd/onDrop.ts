@@ -9,11 +9,11 @@ export const onDrop = (source: DragSource, target?: DropTarget, splitting?: bool
   const { inventory: state } = store.getState();
 
   let { sourceInventory, targetInventory } = getTargetInventory(state, source.inventory, target?.inventory);
-  
+
   if (splitting) {
     targetInventory = sourceInventory;
   }
-  
+
   const sourceSlot = sourceInventory.items[source.item.slot - 1] as SlotWithItem;
 
   const sourceData = Items[sourceSlot.name];

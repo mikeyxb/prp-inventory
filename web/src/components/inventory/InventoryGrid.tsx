@@ -7,7 +7,7 @@ import { useIntersection } from '../../hooks/useIntersection';
 
 const PAGE_SIZE = 30;
 
-const InventoryGrid: React.FC<{ inventory: Inventory, inv: string }> = ({ inventory, inv }) => {
+const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ inventory, inv }) => {
   const weight = useMemo(
     () => (inventory.maxWeight !== undefined ? Math.floor(getTotalWeight(inventory.items) * 1000) / 1000 : 0),
     [inventory.maxWeight, inventory.items]
@@ -25,15 +25,19 @@ const InventoryGrid: React.FC<{ inventory: Inventory, inv: string }> = ({ invent
   }, [entry]);
   return (
     <>
-      <div className={`bg-black/70 rounded-lg border border-neutral-500 w-[540px] absolute top-1/2 ${inv === 'left' ? 'left-[16%]' : 'left-[84%]'} p-5`} 
-      style={{ 
-        pointerEvents: isBusy ? 'none' : 'auto',
-        transform: `translate(-50%, -50%) perspective(1000px) rotateY(${inv === 'left' ? '12deg' : '-12deg'})`
-       }}>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-5 text-white font-medium'>
-            <p className='text-lg'>{inventory.label}</p>
-            <div className='flex items-center gap-1'>
+      <div
+        className={`bg-black/70 rounded-lg border border-neutral-500 w-[540px] absolute top-1/2 ${
+          inv === 'left' ? 'left-[16%]' : 'left-[84%]'
+        } p-5`}
+        style={{
+          pointerEvents: isBusy ? 'none' : 'auto',
+          transform: `translate(-50%, -50%) perspective(1000px) rotateY(${inv === 'left' ? '12deg' : '-12deg'})`,
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-5 text-white font-medium">
+            <p className="text-lg">{inventory.label}</p>
+            <div className="flex items-center gap-1">
               <span className="material-symbols-outlined">weight</span>
               {inventory.maxWeight && (
                 <p>
@@ -42,21 +46,33 @@ const InventoryGrid: React.FC<{ inventory: Inventory, inv: string }> = ({ invent
               )}
             </div>
           </div>
-          <div className='text-white flex items-center gap-1'>
-            <input type="text" className='bg-black/65 text-white focus:outline-none rounded px-2 py-1.5 border border-neutral-500/65 w-[150px]' 
-            onChange={(e) => setQuery((prev) => ({ ...prev, [inv]: e.target.value }))}/>
+          <div className="text-white flex items-center gap-1">
+            <input
+              type="text"
+              className="bg-black/65 text-white focus:outline-none rounded px-2 py-1.5 border border-neutral-500/65 w-[150px]"
+              onChange={(e) => setQuery((prev) => ({ ...prev, [inv]: e.target.value }))}
+            />
             <span className="material-symbols-outlined">search</span>
-            <span className={`material-symbols-outlined cursor-pointer ${closed.includes(inv) ? 'rotate-180' : 'rotate-0'} transition-all duration-300`} 
-            onClick={() => {
-              setClosed((prev) => prev.includes(inv) ? prev.filter((id) => id !== inv) : [...prev, inv] );
-            }}>keyboard_arrow_up</span>
+            <span
+              className={`material-symbols-outlined cursor-pointer ${
+                closed.includes(inv) ? 'rotate-180' : 'rotate-0'
+              } transition-all duration-300`}
+              onClick={() => {
+                setClosed((prev) => (prev.includes(inv) ? prev.filter((id) => id !== inv) : [...prev, inv]));
+              }}
+            >
+              keyboard_arrow_up
+            </span>
           </div>
         </div>
-        <div className='bg-black/65 w-full h-2 my-2 rounded-full border border-neutral-600 overflow-hidden'>
-            <div className='bg-lime-500 h-full w-2' style={{ width: `${inventory.maxWeight ? (weight / inventory.maxWeight) * 100 : 0}%` }}></div>
+        <div className="bg-black/65 w-full h-2 my-2 rounded-full border border-neutral-600 overflow-hidden">
+          <div
+            className="bg-lime-500 h-full w-2"
+            style={{ width: `${inventory.maxWeight ? (weight / inventory.maxWeight) * 100 : 0}%` }}
+          ></div>
         </div>
         <AccordionSection open={!closed.includes(inv)}>
-          <div className='grid grid-cols-4 h-[400px] overflow-y-scroll pr-1 gap-2'>
+          <div className="grid grid-cols-4 h-[400px] overflow-y-scroll pr-1 gap-2">
             {inventory.items.slice(0, (page + 1) * PAGE_SIZE).map((item, index) => (
               <InventorySlot
                 key={`${inventory.type}-${inventory.id}-${item.slot}`}
@@ -79,7 +95,7 @@ export default InventoryGrid;
 
 const AccordionSection: React.FC<{ open: boolean; children: any }> = ({ open, children }) => {
   const contentRef = useRef<HTMLDivElement>(null);
-  const [maxHeight, setMaxHeight] = useState(() => (open ? "auto" : "0px"));
+  const [maxHeight, setMaxHeight] = useState(() => (open ? 'auto' : '0px'));
 
   useEffect(() => {
     const el = contentRef.current;
@@ -88,9 +104,9 @@ const AccordionSection: React.FC<{ open: boolean; children: any }> = ({ open, ch
     const updateHeight = () => {
       if (open) {
         setMaxHeight(`${el.scrollHeight}px`);
-        setTimeout(() => setMaxHeight("auto"), 300);
+        setTimeout(() => setMaxHeight('auto'), 300);
       } else {
-        setMaxHeight("0px");
+        setMaxHeight('0px');
       }
     };
 
@@ -104,7 +120,7 @@ const AccordionSection: React.FC<{ open: boolean; children: any }> = ({ open, ch
 
     const resizeObserver = new ResizeObserver(() => {
       if (open) {
-        setMaxHeight("auto");
+        setMaxHeight('auto');
       }
     });
 
@@ -117,8 +133,8 @@ const AccordionSection: React.FC<{ open: boolean; children: any }> = ({ open, ch
       style={{
         maxHeight,
         opacity: open ? 1 : 0,
-        overflow: "hidden",
-        transition: "all 0.3s",
+        overflow: 'hidden',
+        transition: 'all 0.3s',
       }}
     >
       <div ref={contentRef}>{children}</div>

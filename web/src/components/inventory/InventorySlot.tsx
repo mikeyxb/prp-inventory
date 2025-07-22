@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { DragSource, Inventory, InventoryType, Slot, SlotWithItem } from '../../typings';
 import { useDrag, useDragDropManager, useDrop } from 'react-dnd';
 import { useAppDispatch } from '../../store';
@@ -13,15 +13,24 @@ import { ItemsPayload } from '../../reducers/refreshSlots';
 import { closeTooltip, openTooltip } from '../../store/tooltip';
 import { openContextMenu } from '../../store/contextMenu';
 import { useMergeRefs } from '@floating-ui/react';
+import { Locale } from '../../store/locale';
+import dragSound from '../../assets/sounds/drag.wav';
 
 export const getColor = (rarity: string): { text: string; background: string } => {
+  if (!rarity) return { text: '#636363', background: 'radial-gradient(#00000050, #31313150)' };
+  
   switch (rarity.toLowerCase()) {
-    case 'rare': return { text: '#0ea5e9', background: 'radial-gradient(#00000000, #0ea5e920)' };
-    case 'epic': return { text: '#db2777', background: 'radial-gradient(#00000000, #be185d25)' };
-    case 'legendary': return { text: '#a16207', background: 'radial-gradient(#00000000, #a1620725)' };
-    case 'uncommon': return { text: '#84cc16', background: 'radial-gradient(#00000050, #84cc1610)' };
-    default: return { text: '#636363', background: 'radial-gradient(#00000050, #31313150)' };
-  };
+    case 'rare':
+      return { text: '#0ea5e9', background: 'radial-gradient(#00000000, #0ea5e920)' };
+    case 'epic':
+      return { text: '#db2777', background: 'radial-gradient(#00000000, #be185d25)' };
+    case 'legendary':
+      return { text: '#a16207', background: 'radial-gradient(#00000000, #a1620725)' };
+    case 'uncommon':
+      return { text: '#84cc16', background: 'radial-gradient(#00000050, #84cc1610)' };
+    default:
+      return { text: '#636363', background: 'radial-gradient(#00000050, #31313150)' };
+  }
 };
 
 interface SlotProps {
@@ -42,11 +51,17 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
 
   const matchesQuery = (item: Slot | null, query: string = '') => {
     if (!item || typeof item.name !== 'string') return true; // Return true if slot is empty
-    return (item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name).toLowerCase().includes(query.toLowerCase());
+    return (item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name)
+      .toLowerCase()
+      .includes(query.toLowerCase());
   };
 
   const canDrag = useCallback(() => {
-    return canPurchaseItem(item, { type: inventoryType, groups: inventoryGroups }) && canCraftItem(item, inventoryType) && matchesQuery(item, query);
+    return (
+      canPurchaseItem(item, { type: inventoryType, groups: inventoryGroups }) &&
+      canCraftItem(item, inventoryType) &&
+      matchesQuery(item, query)
+    );
   }, [item, inventoryType, inventoryGroups, query]);
 
   const [{ isDragging }, drag] = useDrag<DragSource, void, { isDragging: boolean }>(
@@ -75,8 +90,8 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
         isOver: monitor.isOver(),
       }),
       drop: (source) => {
-        const audio = new Audio('/drag.wav');
-        audio.play()
+        const audio = new Audio(dragSound);
+        audio.play();
         dispatch(closeTooltip());
         switch (source.inventory) {
           case InventoryType.SHOP:
@@ -139,29 +154,35 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
       onClick={handleClick}
       className={`relative w-[115px] h-[115px] rounded-[3px] border border-transparent item-slot-border
         [background:radial-gradient(#00000050,_#31313150)] hover:[background:radial-gradient(#00000050,_#42424250)]`}
-      style={{
-        background: item.rarity !== 'common' && matchesQuery(item, query) ? getColor(item.rarity as string).background : '',
-        '--borderColor': matchesQuery(item, query) ? getColor(item.rarity as string).text : '',
-        filter:
-          !canPurchaseItem(item, { type: inventoryType, groups: inventoryGroups }) || !canCraftItem(item, inventoryType)
-            ? 'brightness(80%) grayscale(100%)'
-            : undefined
-      } as React.CSSProperties}
+      style={
+        {
+          background:
+            Items[item.name as string]?.rarity !== 'common' && matchesQuery(item, query) ? getColor(Items[item.name as string]?.rarity as string).background : '',
+          '--borderColor': matchesQuery(item, query) ? getColor(Items[item.name as string]?.rarity as string).text : '',
+          filter:
+            !canPurchaseItem(item, { type: inventoryType, groups: inventoryGroups }) ||
+            !canCraftItem(item, inventoryType)
+              ? 'brightness(80%) grayscale(100%)'
+              : undefined,
+        } as React.CSSProperties
+      }
     >
       {isSlotWithItem(item) && matchesQuery(item, query) && (
-        <div className="p-1.5 text-[#a8a8a8] text-xs relative w-full h-full cursor-pointer"
-        onMouseEnter={() => {
+        <div
+          className="p-1.5 text-[#a8a8a8] text-xs relative w-full h-full cursor-pointer"
+          onMouseEnter={() => {
             timerRef.current = window.setTimeout(() => {
               dispatch(openTooltip({ item, inventoryType }));
             }, 500) as unknown as number;
-        }}
-        onMouseLeave={() => {
-          dispatch(closeTooltip());
-          if (timerRef.current) {
-            clearTimeout(timerRef.current);
-            timerRef.current = null;
-          }
-        }}>
+          }}
+          onMouseLeave={() => {
+            dispatch(closeTooltip());
+            if (timerRef.current) {
+              clearTimeout(timerRef.current);
+              timerRef.current = null;
+            }
+          }}
+        >
           <img
             src={`${item?.name ? getItemUrl(item as SlotWithItem) : 'none'}`}
             className="absolute w-[70px] h-[70px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0"
@@ -172,13 +193,10 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
             <p
               className="absolute top-0 right-0 text-[10px] font-medium"
               style={{
-                color:
-                  item.rarity === 'common'
-                    ? '#ffffff'
-                    : getColor(item.rarity as string).text
+                color: Items[item.name as string]?.rarity === 'common' ? '#ffffff' : getColor(Items[item.name as string]?.rarity as string).text,
               }}
             >
-              {item.rarity?.toUpperCase()}
+              {Items[item.name as string]?.rarity?.toUpperCase()}
             </p>
             <p>{item.count > 1 ? item.count.toLocaleString('en-us') + `x` : ''}</p>
             <p className="text-[11px]">
@@ -196,11 +214,49 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
           <p className="absolute text-white w-1/2 bottom-[7px] left-[7px] font-semibold z-10">
             {item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name}
           </p>
+          {inventoryType !== 'shop' && item?.durability !== undefined && (
+            <div className="absolute h-1 w-full bottom-0 left-0">
+              <div
+                className="h-full"
+                style={{ backgroundColor: getColor(Items[item.name as string]?.rarity as string).text, width: `${item.durability}%` }}
+              ></div>
+            </div>
+          )}
+          {inventoryType === 'shop' && item?.price !== undefined && (
+            <div className="absolute z-10">
+              {item?.currency !== 'money' && item.currency !== 'black_money' && item.price > 0 && item.currency ? (
+                <div className="flex items-center gap-1">
+                  <img
+                    src={item.currency ? getItemUrl(item.currency) : 'none'}
+                    alt="item-image"
+                    style={{
+                      imageRendering: '-webkit-optimize-contrast',
+                      height: 'auto',
+                      width: '2vh',
+                      backfaceVisibility: 'hidden',
+                      transform: 'translateZ(0)',
+                    }}
+                  />
+                  <p>{item.price.toLocaleString('en-us')}</p>
+                </div>
+              ) : (
+                <>
+                  {item.price > 0 && (
+                    <div className="flex items-center gap-1">
+                      <p>
+                        {Locale.$ || '$'}
+                        {item.price.toLocaleString('en-us')}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
   );
-
 };
 
 export default React.memo(React.forwardRef(InventorySlot));

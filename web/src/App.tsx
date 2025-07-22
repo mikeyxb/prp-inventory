@@ -30,18 +30,29 @@ debugData([
             weight: 100,
             count: 1,
             metadata: { description: 'Refreshing water' },
-            rarity: 'uncommon'
           },
-          { slot: 3, name: 'armour', weight: 2000, count: 2, rarity: 'uncommon', metadata: { description: 'Bulletprof' } },
-          { slot: 4, name: 'garbage', weight: 600, count: 5, rarity: 'epic', metadata: { description: 'Stinks!!' } },
-          { slot: 5, name: 'burger', weight: 1000, count: 1, rarity: 'rare', metadata: { description: 'Delicious burger' }}
+          {
+            slot: 3,
+            name: 'armour',
+            weight: 2000,
+            count: 2,
+            metadata: { description: 'Bulletprof', durability: 74 },
+          },
+          { slot: 4, name: 'garbage', weight: 600, count: 5, metadata: { description: 'Stinks!!' } },
+          {
+            slot: 5,
+            name: 'burger',
+            weight: 1000,
+            count: 1,
+            metadata: { description: 'Delicious burger', durability: 27 },
+          },
         ],
       },
       rightInventory: {
         id: 'shop',
-        type: 'crafting',
-        slots: 12,
-        label: 'Crafting',
+        type: 'shop',
+        slots: 1,
+        label: 'YouTool',
         weight: 3000,
         maxWeight: 5000,
         items: [
@@ -49,10 +60,10 @@ debugData([
             slot: 1,
             name: 'lockpick',
             weight: 500,
-            price: 300,
+            price: 350000,
             ingredients: {
               garbage: 5,
-              armour: 2
+              armour: 2,
             },
             metadata: {
               description: 'Simple lockpick that breaks easily and can pick basic door locks',
@@ -96,8 +107,8 @@ const App: React.FC = () => {
   );
 };
 
-addEventListener("dragstart", function(event) {
-  event.preventDefault()
-})
+addEventListener('dragstart', function (event) {
+  event.preventDefault();
+});
 
 export default App;

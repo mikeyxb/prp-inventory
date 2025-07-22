@@ -7,7 +7,6 @@ export type Slot = {
     [key: string]: any;
   };
   durability?: number;
-  rarity?: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 };
 
 export type SlotWithItem = Slot & {

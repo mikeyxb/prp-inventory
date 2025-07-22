@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import useNuiEvent from '../../hooks/useNuiEvent';
-import InventoryControl from './InventoryControl';
 import InventoryHotbar from './InventoryHotbar';
 import { useAppDispatch } from '../../store';
 import { refreshSlots, setAdditionalMetadata, setupInventory } from '../../store/inventory';
