@@ -56,13 +56,11 @@ const DragPreview: React.FC = () => {
     <>
       {isDragging && currentOffset && data.item && (
         <div
-          className={`relative w-[115px] h-[115px] rounded-[3px] border border-transparent item-slot-border pointer-events-none
-            [background:radial-gradient(#00000050,_#31313150)] hover:[background:radial-gradient(#00000050,_#42424250)]`}
+          className='relative w-[115px] h-[115px] rounded-[3px] border border-transparent item-slot-border pointer-events-none'
           ref={element}
           style={
             {
               transform: `translate(${currentOffset.x}px, ${currentOffset.y}px)`,
-              background: Items[data.item.name]?.rarity !== 'common' ? getColor(Items[data.item.name]?.rarity as string).background : '',
               '--borderColor': getColor(Items[data.item.name]?.rarity as string).text,
             } as React.CSSProperties
           }

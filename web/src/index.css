@@ -89,7 +89,27 @@ input[type='number']::-webkit-outer-spin-button {
   background-color: #84cc16;
 }
 
-.item-slot-border::before {
+.item-slot-border:hover::before {
+  filter: 
+    drop-shadow(0 0 10px var(--borderColor)) 
+    drop-shadow(0 0 10px var(--borderColor)) 
+    drop-shadow(0 0 2px var(--borderColor));
+  transition: all 0.3s;
+}
+
+.crafting-slot::before {
+  border-radius: 8px !important;
+}
+
+.crafting-slot:hover::before,
+.crafting-slot[data-active="true"]::before {
+  border: 1px solid #65a30d;
+  mask-image: none;
+}
+
+.item-slot-border::before,
+.crafting-slot::before {
+  transition: all 0.3s;
   content: '';
   pointer-events: none;
   position: absolute;
@@ -97,8 +117,12 @@ input[type='number']::-webkit-outer-spin-button {
   left: -1px;
   right: -1px;
   bottom: -1px;
-  border-radius: 3px;
+  border-radius: 2px;
   border: 1px solid var(--borderColor, #636363);
+   filter: 
+    drop-shadow(0 0 5px var(--borderColor))
+    drop-shadow(0 0 0px var(--borderColor))
+    drop-shadow(0 0 0px var(--borderColor));
   mask-image: linear-gradient(to bottom right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
   -webkit-mask-image: linear-gradient(to bottom right, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
 }

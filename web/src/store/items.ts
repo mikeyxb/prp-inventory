@@ -6,6 +6,7 @@ export const Items: {
   water: {
     name: 'water',
     close: false,
+    rarity: 'common',
     label: 'VODA',
     stack: true,
     usable: true,

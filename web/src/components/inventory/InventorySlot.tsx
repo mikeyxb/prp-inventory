@@ -17,7 +17,8 @@ import { Locale } from '../../store/locale';
 import dragSound from '../../assets/sounds/drag.wav';
 
 export const getColor = (rarity: string): { text: string; background: string } => {
-  if (!rarity) return { text: '#636363', background: 'radial-gradient(#00000050, #31313150)' };
+  const defaultColor = { text: '#757575', background: 'radial-gradient(#00000050, #51515150)' };
+  if (!rarity) return defaultColor;
   
   switch (rarity.toLowerCase()) {
     case 'rare':
@@ -29,7 +30,7 @@ export const getColor = (rarity: string): { text: string; background: string } =
     case 'uncommon':
       return { text: '#84cc16', background: 'radial-gradient(#00000050, #84cc1610)' };
     default:
-      return { text: '#636363', background: 'radial-gradient(#00000050, #31313150)' };
+      return defaultColor;
   }
 };
 
@@ -152,13 +153,10 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
       ref={refs}
       onContextMenu={handleContext}
       onClick={handleClick}
-      className={`relative w-[115px] h-[115px] rounded-[3px] border border-transparent item-slot-border
-        [background:radial-gradient(#00000050,_#31313150)] hover:[background:radial-gradient(#00000050,_#42424250)]`}
+      className={`relative w-[115px] h-[115px] border border-transparent item-slot-border`}
       style={
         {
-          background:
-            Items[item.name as string]?.rarity !== 'common' && matchesQuery(item, query) ? getColor(Items[item.name as string]?.rarity as string).background : '',
-          '--borderColor': matchesQuery(item, query) ? getColor(Items[item.name as string]?.rarity as string).text : '',
+          '--borderColor': matchesQuery(item, query) ? getColor(Items[item.name as string]?.rarity as string).text : undefined,
           filter:
             !canPurchaseItem(item, { type: inventoryType, groups: inventoryGroups }) ||
             !canCraftItem(item, inventoryType)

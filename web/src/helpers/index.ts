@@ -81,6 +81,45 @@ export const canCraftItem = (item: Slot, inventoryType: string) => {
   return remainingItems.length === 0;
 };
 
+export const getCraftItemCount = (item: Slot) => {
+  if (!isSlotWithItem(item) || !item.ingredients) return 'infinity';
+  const leftInventory = store.getState().inventory.leftInventory;
+  const ingredientItems = Object.entries(item.ingredients);
+  let count = 0;
+
+  ingredientItems.forEach(([ingredient, ingredientCount]) => {
+    const inventoryItem = leftInventory.items.find((playerItem) => {
+      return isSlotWithItem(playerItem) && playerItem.name === ingredient;
+    });
+
+    if (inventoryItem) {
+      let availableCountInInventory = inventoryItem.count as number;
+
+      if (ingredientCount > 1) {
+        // Ensure the item is enough based on count
+        availableCountInInventory = Math.floor(availableCountInInventory / ingredientCount);
+      }
+
+      count = availableCountInInventory;
+    } else {
+      // If the ingredient isn't found in inventory, you can't craft it at all
+      count = 0;
+    }
+  });
+
+  return count;
+};
+
+export const getItemCount = (itemName: string) => {
+  const leftInventory = store.getState().inventory.leftInventory;
+
+  const matchingItem = leftInventory.items.find((playerItem) => {
+    return isSlotWithItem(playerItem) && playerItem.name === itemName;
+  });
+
+  return matchingItem?.count ?? 0;
+};
+
 export const isSlotWithItem = (slot: Slot, strict: boolean = false): slot is SlotWithItem =>
   (slot.name !== undefined && slot.weight !== undefined) ||
   (strict && slot.name !== undefined && slot.count !== undefined && slot.weight !== undefined);

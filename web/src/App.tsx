@@ -43,15 +43,15 @@ debugData([
             slot: 5,
             name: 'burger',
             weight: 1000,
-            count: 1,
+            count: 5,
             metadata: { description: 'Delicious burger', durability: 27 },
           },
         ],
       },
       rightInventory: {
         id: 'shop',
-        type: 'shop',
-        slots: 1,
+        type: 'crafting',
+        slots: 2,
         label: 'YouTool',
         weight: 3000,
         maxWeight: 5000,
@@ -60,11 +60,21 @@ debugData([
             slot: 1,
             name: 'lockpick',
             weight: 500,
-            price: 350000,
             ingredients: {
-              garbage: 5,
-              armour: 2,
+              burger: 1,
+              water: 2
             },
+            count: 1,
+            duration: 5000,
+            metadata: {
+              description: 'Simple lockpick that breaks easily and can pick basic door locks',
+            },
+          },
+          {
+            slot: 2,
+            name: 'burger',
+            weight: 250,
+            count: 1,
             metadata: {
               description: 'Simple lockpick that breaks easily and can pick basic door locks',
             },
