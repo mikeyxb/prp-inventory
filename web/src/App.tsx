@@ -28,7 +28,7 @@ debugData([
             slot: 1,
             name: 'water',
             weight: 100,
-            count: 1,
+            count: 4,
             metadata: { description: 'Refreshing water' },
           },
           {
@@ -51,7 +51,7 @@ debugData([
       rightInventory: {
         id: 'shop',
         type: 'crafting',
-        slots: 2,
+        slots: 3,
         label: 'YouTool',
         weight: 3000,
         maxWeight: 5000,
@@ -79,6 +79,16 @@ debugData([
               description: 'Simple lockpick that breaks easily and can pick basic door locks',
             },
           },
+          {
+            slot: 3,
+            name: 'armour',
+            weight: 1000,
+            ingredients: {
+              garbage: 7
+            },
+            count: 2,
+            duration: 10000
+          }
         ],
       },
     },

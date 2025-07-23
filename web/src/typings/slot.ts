@@ -21,3 +21,7 @@ export type SlotWithItem = Slot & {
   image?: string;
   grade?: number | number[];
 };
+
+export type CraftSlot = SlotWithItem & {
+  craftCount: number;
+}

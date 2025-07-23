@@ -48,66 +48,73 @@ export const canPurchaseItem = (item: Slot, inventory: { type: Inventory['type']
   }
 };
 
-export const canCraftItem = (item: Slot, inventoryType: string) => {
+export const canCraftItem = (item: Slot, inventoryType: string, reserved: { [key: string]: number } = {}) => {
   if (!isSlotWithItem(item) || inventoryType !== 'crafting') return true;
   if (!item.ingredients) return true;
+
   const leftInventory = store.getState().inventory.leftInventory;
   const ingredientItems = Object.entries(item.ingredients);
 
-  const remainingItems = ingredientItems.filter((ingredient) => {
-    const [item, count] = [ingredient[0], ingredient[1]];
-    const globalItem = Items[item];
+  const remainingItems = ingredientItems.filter(([ingredientName, requiredCount]) => {
+    const globalItem = Items[ingredientName];
 
-    if (count >= 1) {
-      if (globalItem && globalItem.count >= count) return false;
+    if (requiredCount >= 1) {
+      if (globalItem && globalItem.count >= requiredCount) return false;
     }
 
-    const hasItem = leftInventory.items.find((playerItem) => {
-      if (isSlotWithItem(playerItem) && playerItem.name === item) {
-        if (count < 1) {
-          if (playerItem.metadata?.durability >= count * 100) return true;
+    const reservedCount = reserved[ingredientName] || 0;
 
-          return false;
+    let totalAvailableCount = 0;
+    leftInventory.items.forEach(playerItem => {
+      if (isSlotWithItem(playerItem) && playerItem.name === ingredientName) {
+        if (requiredCount < 1) {
+          // durability check
+          if (playerItem.metadata?.durability >= requiredCount * 100) {
+            totalAvailableCount += 1;
+          }
+        } else {
+          totalAvailableCount += playerItem.count;
         }
-
-        // Edited??
-        if (count <= playerItem.count) return true;
       }
     });
 
-    return !hasItem;
+    totalAvailableCount -= reservedCount;
+
+    return totalAvailableCount < requiredCount * 1;
   });
 
   return remainingItems.length === 0;
 };
 
-export const getCraftItemCount = (item: Slot) => {
+export const getCraftItemCount = (item: Slot, reserved: { [key: string]: number } = {}) => {
   if (!isSlotWithItem(item) || !item.ingredients) return 'infinity';
   const leftInventory = store.getState().inventory.leftInventory;
   const ingredientItems = Object.entries(item.ingredients);
-  let count = 0;
+  
+  let maxCount = Infinity;
 
-  ingredientItems.forEach(([ingredient, ingredientCount]) => {
+  for (const [ingredient, ingredientCount] of ingredientItems) {
     const inventoryItem = leftInventory.items.find((playerItem) => {
       return isSlotWithItem(playerItem) && playerItem.name === ingredient;
     });
 
-    if (inventoryItem) {
-      let availableCountInInventory = inventoryItem.count as number;
-
-      if (ingredientCount > 1) {
-        // Ensure the item is enough based on count
-        availableCountInInventory = Math.floor(availableCountInInventory / ingredientCount);
-      }
-
-      count = availableCountInInventory;
-    } else {
-      // If the ingredient isn't found in inventory, you can't craft it at all
-      count = 0;
+    if (!inventoryItem) {
+      return 0;
     }
-  });
 
-  return count;
+    let availableCountInInventory = inventoryItem.count as number;
+
+    const reservedCount = reserved[ingredient] || 0;
+    availableCountInInventory -= reservedCount;
+
+    if (availableCountInInventory < 0) availableCountInInventory = 0;
+
+    const possibleCount = Math.floor(availableCountInInventory / ingredientCount);
+
+    if (possibleCount < maxCount) maxCount = possibleCount;
+  }
+
+  return maxCount;
 };
 
 export const getItemCount = (itemName: string) => {

@@ -42,7 +42,7 @@ const InventoryHotbar: React.FC = () => {
             key={`hotbar-${item.slot}`}
           >
             {isSlotWithItem(item) && (
-              <div className='className="p-1.5 text-[#a8a8a8] text-xs relative w-full h-full"'>
+              <div className='p-1.5 text-[#a8a8a8] text-xs relative w-full h-full'>
                 <img
                   src={`${item?.name ? getItemUrl(item as SlotWithItem) : 'none'}`}
                   className="absolute w-[70px] h-[70px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0"
