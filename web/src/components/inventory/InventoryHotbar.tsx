@@ -30,19 +30,21 @@ const InventoryHotbar: React.FC = () => {
       <div className="flex items-center justify-center gap-2 w-full absolute bottom-[2vh]">
         {items.map((item) => (
           <div
-            className='relative w-[115px] h-[115px] rounded-[3px] border border-transparent item-slot-border
-              [background:radial-gradient(#00000050,_#31313150)] hover:[background:radial-gradient(#00000050,_#42424250)]'
+            className="relative w-[115px] h-[115px] rounded-[3px] border border-transparent item-slot-border
+              [background:radial-gradient(#00000050,_#31313150)] hover:[background:radial-gradient(#00000050,_#42424250)]"
             style={
               {
                 background:
-                  Items[item.name as string]?.rarity !== 'common' ? getColor(Items[item.name as string]?.rarity as string).background : '',
-                '--borderColor': getColor(Items[item.name as string]?.rarity as string)?.text || ''
+                  Items[item.name as string]?.rarity !== 'common'
+                    ? getColor(Items[item.name as string]?.rarity as string).background
+                    : '',
+                '--borderColor': getColor(Items[item.name as string]?.rarity as string)?.text || '',
               } as React.CSSProperties
             }
             key={`hotbar-${item.slot}`}
           >
             {isSlotWithItem(item) && (
-              <div className='p-1.5 text-[#a8a8a8] text-xs relative w-full h-full'>
+              <div className="p-1.5 text-[#a8a8a8] text-xs relative w-full h-full">
                 <img
                   src={`${item?.name ? getItemUrl(item as SlotWithItem) : 'none'}`}
                   className="absolute w-[70px] h-[70px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0"
@@ -52,7 +54,10 @@ const InventoryHotbar: React.FC = () => {
                   <p
                     className="absolute top-0 right-0 text-[10px] font-medium"
                     style={{
-                      color: Items[item.name as string]?.rarity === 'common' ? '#ffffff' : getColor(Items[item.name as string]?.rarity as string).text,
+                      color:
+                        Items[item.name as string]?.rarity === 'common'
+                          ? '#ffffff'
+                          : getColor(Items[item.name as string]?.rarity as string).text,
                     }}
                   >
                     {Items[item.name as string]?.rarity?.toUpperCase()}
@@ -75,11 +80,15 @@ const InventoryHotbar: React.FC = () => {
                 </p>
                 {item?.durability !== undefined && (
                   <div className="absolute h-1 w-full bottom-0 left-0">
-                    <div className="h-full"
-                      style={{ backgroundColor: getColor(Items[item.name as string]?.rarity as string).text, width: `${item.durability}%` }}
+                    <div
+                      className="h-full"
+                      style={{
+                        backgroundColor: getColor(Items[item.name as string]?.rarity as string).text,
+                        width: `${item.durability}%`,
+                      }}
                     ></div>
                   </div>
-                )}            
+                )}
               </div>
             )}
           </div>

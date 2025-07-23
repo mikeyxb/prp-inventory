@@ -19,7 +19,7 @@ import dragSound from '../../assets/sounds/drag.wav';
 export const getColor = (rarity: string): { text: string; background: string } => {
   const defaultColor = { text: '#757575', background: 'radial-gradient(#00000050, #51515150)' };
   if (!rarity) return defaultColor;
-  
+
   switch (rarity.toLowerCase()) {
     case 'rare':
       return { text: '#0ea5e9', background: 'radial-gradient(#00000000, #0ea5e920)' };
@@ -49,6 +49,7 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
   const manager = useDragDropManager();
   const dispatch = useAppDispatch();
   const timerRef = useRef<number | null>(null);
+  const isHoveredRef = useRef<boolean>(false);
 
   const matchesQuery = (item: Slot | null, query: string = '') => {
     if (!item || typeof item.name !== 'string') return true; // Return true if slot is empty
@@ -97,9 +98,6 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
         switch (source.inventory) {
           case InventoryType.SHOP:
             onBuy(source, { inventory: inventoryType, item: { slot: item.slot } });
-            break;
-          case InventoryType.CRAFTING:
-            onCraft(source, { inventory: inventoryType, item: { slot: item.slot } });
             break;
           default:
             onDrop(source, { inventory: inventoryType, item: { slot: item.slot } });
@@ -156,7 +154,9 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
       className={`relative w-[115px] h-[115px] border border-transparent item-slot-border`}
       style={
         {
-          '--borderColor': matchesQuery(item, query) ? getColor(Items[item.name as string]?.rarity as string).text : undefined,
+          '--borderColor': matchesQuery(item, query)
+            ? getColor(Items[item.name as string]?.rarity as string).text
+            : undefined,
           filter:
             !canPurchaseItem(item, { type: inventoryType, groups: inventoryGroups }) ||
             !canCraftItem(item, inventoryType)
@@ -169,16 +169,20 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
         <div
           className="p-1.5 text-[#a8a8a8] text-xs relative w-full h-full cursor-pointer"
           onMouseEnter={() => {
+            isHoveredRef.current = true;
             timerRef.current = window.setTimeout(() => {
-              dispatch(openTooltip({ item, inventoryType }));
-            }, 500) as unknown as number;
+              if (isHoveredRef.current) {
+                dispatch(openTooltip({ item, inventoryType }));
+              }
+            }, 500);
           }}
           onMouseLeave={() => {
-            dispatch(closeTooltip());
+            isHoveredRef.current = false;
             if (timerRef.current) {
               clearTimeout(timerRef.current);
               timerRef.current = null;
             }
+            dispatch(closeTooltip());
           }}
         >
           <img
@@ -191,7 +195,10 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
             <p
               className="absolute top-0 right-0 text-[10px] font-medium"
               style={{
-                color: Items[item.name as string]?.rarity === 'common' ? '#ffffff' : getColor(Items[item.name as string]?.rarity as string).text,
+                color:
+                  Items[item.name as string]?.rarity === 'common'
+                    ? '#ffffff'
+                    : getColor(Items[item.name as string]?.rarity as string).text,
               }}
             >
               {Items[item.name as string]?.rarity?.toUpperCase()}
@@ -216,7 +223,10 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
             <div className="absolute h-1 w-full bottom-0 left-0">
               <div
                 className="h-full"
-                style={{ backgroundColor: getColor(Items[item.name as string]?.rarity as string).text, width: `${item.durability}%` }}
+                style={{
+                  backgroundColor: getColor(Items[item.name as string]?.rarity as string).text,
+                  width: `${item.durability}%`,
+                }}
               ></div>
             </div>
           )}

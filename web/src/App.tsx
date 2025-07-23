@@ -62,7 +62,7 @@ debugData([
             weight: 500,
             ingredients: {
               burger: 1,
-              water: 2
+              water: 2,
             },
             count: 1,
             duration: 5000,
@@ -84,11 +84,11 @@ debugData([
             name: 'armour',
             weight: 1000,
             ingredients: {
-              garbage: 7
+              garbage: 7,
             },
             count: 2,
-            duration: 10000
-          }
+            duration: 10000,
+          },
         ],
       },
     },

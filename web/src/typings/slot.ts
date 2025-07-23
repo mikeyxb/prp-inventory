@@ -24,4 +24,5 @@ export type SlotWithItem = Slot & {
 
 export type CraftSlot = SlotWithItem & {
   craftCount: number;
-}
+  startedAt?: number;
+};

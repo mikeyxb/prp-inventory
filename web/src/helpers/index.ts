@@ -4,6 +4,7 @@ import { store } from '../store';
 import { Items } from '../store/items';
 import { imagepath } from '../store/imagepath';
 import { fetchNui } from '../utils/fetchNui';
+import { useEffect, useState } from 'react';
 
 export const canPurchaseItem = (item: Slot, inventory: { type: Inventory['type']; groups: Inventory['groups'] }) => {
   if (inventory.type !== 'shop' || !isSlotWithItem(item)) return true;
@@ -65,7 +66,7 @@ export const canCraftItem = (item: Slot, inventoryType: string, reserved: { [key
     const reservedCount = reserved[ingredientName] || 0;
 
     let totalAvailableCount = 0;
-    leftInventory.items.forEach(playerItem => {
+    leftInventory.items.forEach((playerItem) => {
       if (isSlotWithItem(playerItem) && playerItem.name === ingredientName) {
         if (requiredCount < 1) {
           // durability check
@@ -90,7 +91,7 @@ export const getCraftItemCount = (item: Slot, reserved: { [key: string]: number 
   if (!isSlotWithItem(item) || !item.ingredients) return 'infinity';
   const leftInventory = store.getState().inventory.leftInventory;
   const ingredientItems = Object.entries(item.ingredients);
-  
+
   let maxCount = Infinity;
 
   for (const [ingredient, ingredientCount] of ingredientItems) {
@@ -208,4 +209,15 @@ export const getItemUrl = (item: string | SlotWithItem) => {
   itemData.image = `${imagepath}/${itemName}.png`;
 
   return itemData.image;
+};
+
+export const useCurrentTime = (interval = 100) => {
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), interval);
+    return () => clearInterval(timer);
+  }, [interval]);
+
+  return now;
 };
