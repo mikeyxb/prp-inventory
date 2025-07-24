@@ -7,6 +7,8 @@ export enum InventoryType {
   CRAFTING = 'crafting',
 }
 
+type AccountType = 'money' | 'bank' | 'black_money'
+
 export type Inventory = {
   id: string;
   type: string;
@@ -15,4 +17,5 @@ export type Inventory = {
   maxWeight?: number;
   label?: string;
   groups?: Record<string, number>;
+  accounts?: AccountType[]
 };

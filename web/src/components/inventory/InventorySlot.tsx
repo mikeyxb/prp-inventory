@@ -219,7 +219,7 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
           <p className="absolute text-white w-1/2 bottom-[7px] left-[7px] font-semibold z-10">
             {item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name}
           </p>
-          {inventoryType !== 'shop' && item?.durability !== undefined && (
+          {item?.durability !== undefined && (
             <div className="absolute h-1 w-full bottom-0 left-0">
               <div
                 className="h-full"
@@ -231,7 +231,7 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
             </div>
           )}
           {inventoryType === 'shop' && item?.price !== undefined && (
-            <div className="absolute z-10">
+            <div className="absolute z-10 bottom-1.5 right-1.5">
               {item?.currency !== 'money' && item.currency !== 'black_money' && item.price > 0 && item.currency ? (
                 <div className="flex items-center gap-1">
                   <img

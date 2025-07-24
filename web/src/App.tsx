@@ -48,6 +48,7 @@ debugData([
           },
         ],
       },
+      /*
       rightInventory: {
         id: 'shop',
         type: 'crafting',
@@ -90,7 +91,58 @@ debugData([
             duration: 10000,
           },
         ],
-      },
+      },*/
+      rightInventory: {
+        id: 'shop',
+        type: 'shop',
+        slots: 5,
+        label: 'YouTool',
+        weight: 3000,
+        maxWeight: 5000,
+        items: [
+          {
+            slot: 1,
+            name: 'lockpick',
+            weight: 500,
+            price: 300,
+            count: 1,
+            metadata: {
+              description: 'Simple lockpick that breaks easily and can pick basic door locks',
+            },
+          },
+          {
+            slot: 2,
+            name: 'armour',
+            metadata: { durability: 100 },
+            weight: 1000,
+            price: 750,
+            count: 1,
+          },
+          {
+            slot: 3,
+            name: 'water',
+            metadata: { description: 'Refreshing water.' },
+            price: 5,
+            weight: 100,
+            count: 1
+          },
+          {
+            slot: 4,
+            name: 'burger',
+            price: 10,
+            weight: 250,
+            count: 1
+          },
+          {
+            slot: 5,
+            name: 'garbage',
+            price: 1000,
+            metadata: { description: 'Surprise.' },
+            weight: 1500,
+            count: 1
+          }
+        ],
+      }
     },
   },
 ]);

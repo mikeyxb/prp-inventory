@@ -91,6 +91,9 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
     });
   }, [inventory.items, page, craftQuery]);
 
+  // SHOP
+  const [shoppingCart, setShoppingCart] = useState([]);
+
   const filteredInventoryItems = useMemo(() => {
     return inventory.items.slice(0, (page + 1) * PAGE_SIZE).filter((item) => {
       const label = item.metadata?.label ?? Items[item.name as string]?.label ?? item.name ?? '';
@@ -420,6 +423,73 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
               })}
             </div>
           )}
+        </div>
+      )}
+      {inventory.type === 'shop' && (
+        <div className={`font-[Inter] absolute top-1/2 ${ inv === 'left' ? 'left-[16%]' : 'left-[84%]' } w-[540px] flex flex-col gap-2`}
+        style={{
+          pointerEvents: isBusy ? 'none' : 'auto',
+          transform: `translate(-50%, -50%) perspective(1000px) rotateY(${inv === 'left' ? '12deg' : '-12deg'})`,
+        }}>
+          <div className={`bg-black/70 rounded-lg border border-neutral-500 p-5`}>
+            <p className='text-white text-lg font-medium'>{inventory.label}</p>
+            <div className="grid grid-cols-4 pr-1 gap-2 mt-2 max-h-[240px] overflow-y-scroll">
+              {filteredInventoryItems.map((item, index) => (
+                <InventorySlot
+                  key={`${inventory.type}-${inventory.id}-${item.slot}`}
+                  item={item}
+                  ref={index === filteredInventoryItems.length - 1 ? ref : null}
+                  inventoryType={inventory.type}
+                  inventoryGroups={inventory.groups}
+                  inventoryId={inventory.id}
+                  query={query[inv]}
+                />
+              ))}
+            </div>
+          </div>
+          <div className={`bg-black/70 rounded-lg border border-neutral-500 p-5`}>
+            <p className='text-white text-lg font-medium'>{(Locale.shopping_cart || 'Shopping Cart')}</p>
+
+            <div className="border-b border-neutral-600 my-5"></div>
+
+            <div className='h-[250px]'>
+              <div className='flex items-center justify-center flex-col h-full text-2xl text-neutral-400'>
+                <i className="fa-regular fa-square-plus text-4xl"></i>
+                <p className='font-light'>{(Locale.drag_items || 'Drag shop items here').toUpperCase()}</p>
+              </div>
+            </div>
+
+            <div className="border-b border-neutral-600 my-5"></div>
+
+            <div className='text-white flex items-center justify-between'>
+              <p className='text-lg'>{(Locale.total_cost || 'Total Cost').toUpperCase()}</p>
+              <p className='font-semibold text-2xl'>${0}</p>
+            </div>
+
+            <div className='flex items-center justify-end gap-3 mt-3'>
+              {( !inventory.accounts || inventory.accounts.length === 0 || inventory.accounts.includes('bank') ) && (
+                <button className='text-white flex items-center gap-2 text-xl font-semibold bg-black/50 px-4 py-1.5 rounded-sm border border-neutral-700
+                hover:bg-lime-950/50 hover:border-lime-600 duration-200'>
+                  <i className="hgi hgi-stroke hgi-credit-card"></i>
+                  <p>{(Locale.pay_bank || 'Pay Bank')}</p>
+                </button>
+              )}
+              {( !inventory.accounts || inventory.accounts.length === 0 || inventory.accounts.includes('money') ) && (
+                <button className='text-white flex items-center gap-2 text-xl font-semibold bg-black/50 px-4 py-1.5 rounded-sm border border-neutral-700
+                hover:bg-lime-950/50 hover:border-lime-600 duration-200'>
+                  <i className="hgi hgi-stroke hgi-coins-02"></i>
+                  <p>{(Locale.pay_money || 'Pay Cash')}</p>
+                </button>
+              )}
+              {( inventory.accounts?.includes('black_money') ) && (
+                <button className='text-white flex items-center gap-2 text-xl font-semibold bg-black/50 px-4 py-1.5 rounded-sm border border-neutral-700
+                hover:bg-lime-950/50 hover:border-lime-600 duration-200'>
+                  <i className="hgi hgi-stroke hgi-bitcoin-bag"></i>
+                  <p>{(Locale.pay_black_money || 'Pay Dirty Cash')}</p>
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </>
