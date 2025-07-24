@@ -96,9 +96,6 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
         audio.play();
         dispatch(closeTooltip());
         switch (source.inventory) {
-          case InventoryType.SHOP:
-            onBuy(source, { inventory: inventoryType, item: { slot: item.slot } });
-            break;
           default:
             onDrop(source, { inventory: inventoryType, item: { slot: item.slot } });
             break;

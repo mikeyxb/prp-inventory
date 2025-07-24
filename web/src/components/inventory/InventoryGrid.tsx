@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { CraftSlot, Inventory, Slot, SlotWithItem } from '../../typings';
-import InventorySlot from './InventorySlot';
+import { AccountType, CraftSlot, DragSource, Inventory, SlotWithItem } from '../../typings';
+import InventorySlot, { getColor } from './InventorySlot';
 import {
   canCraftItem,
   getCraftItemCount,
@@ -16,6 +16,10 @@ import { Items } from '../../store/items';
 import Fade from '../utils/transitions/Fade';
 import CircularProgress from './CircularProgress';
 import { onCraft } from '../../dnd/onCraft';
+import { useDrag, useDrop } from 'react-dnd';
+import dragSound from '../../assets/sounds/drag.wav';
+import { useMergeRefs } from '@floating-ui/react';
+import { onBuy } from '../../dnd/onBuy';
 
 const PAGE_SIZE = 30;
 
@@ -92,7 +96,75 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
   }, [inventory.items, page, craftQuery]);
 
   // SHOP
-  const [shoppingCart, setShoppingCart] = useState([]);
+  const [shoppingCart, setShoppingCart] = useState<SlotWithItem[]>([]);
+  const [animatedTotal, setAnimatedTotal] = useState(0);
+
+  const actualTotal = shoppingCart.reduce(
+    (total, item) => total + (item.price ?? 0) * (item.count || 1),
+    0
+  );
+
+  useEffect(() => {
+    let start: any = null;
+    let animationFrameId: number;
+
+    const duration = 500; // ms
+    const difference = actualTotal - animatedTotal;
+
+    const step = (timestamp: number) => {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      const currentValue = animatedTotal + difference * progress;
+      setAnimatedTotal(currentValue);
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(step);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [actualTotal]);
+
+
+  const [{ isDragging }, drag] = useDrag<DragSource, void, { isDragging: boolean }>(
+    () => ({
+      type: 'SLOT',
+      collect: (monitor) => ({
+        isDragging: monitor.isDragging(),
+      })      
+    }),
+    [inventory.type]
+  );
+
+  const [{ isOver }, drop] = useDrop<DragSource, void, { isOver: boolean }>(
+    () => ({
+      accept: 'SLOT',
+      collect: (monitor) => ({
+        isOver: monitor.isOver(),
+      }),
+      drop: (source) => {
+        const audio = new Audio(dragSound);
+        audio.play();
+        setShoppingCart(prev => [...prev, source.item])
+      },
+      canDrop: (source) =>
+        (source.inventory === 'shop')
+    }),
+    [inventory.type]
+  );
+
+  const connectRef = (element: HTMLDivElement) => drag(drop(element));
+  const refs = useMergeRefs([connectRef, ref]);
+
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+  const handleBuy = async (account: AccountType) => {
+    for (let i = 0; i < shoppingCart.length; i++) {
+      const item = shoppingCart[i];
+      onBuy(item, account);
+      await delay(250);
+    }
+  };
 
   const filteredInventoryItems = useMemo(() => {
     return inventory.items.slice(0, (page + 1) * PAGE_SIZE).filter((item) => {
@@ -434,17 +506,24 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
           <div className={`bg-black/70 rounded-lg border border-neutral-500 p-5`}>
             <p className='text-white text-lg font-medium'>{inventory.label}</p>
             <div className="grid grid-cols-4 pr-1 gap-2 mt-2 max-h-[240px] overflow-y-scroll">
-              {filteredInventoryItems.map((item, index) => (
-                <InventorySlot
-                  key={`${inventory.type}-${inventory.id}-${item.slot}`}
-                  item={item}
-                  ref={index === filteredInventoryItems.length - 1 ? ref : null}
-                  inventoryType={inventory.type}
-                  inventoryGroups={inventory.groups}
-                  inventoryId={inventory.id}
-                  query={query[inv]}
-                />
-              ))}
+              {filteredInventoryItems.map((item, index) => {
+                const isInCart = shoppingCart.some(shopItem => item.name === shopItem.name);
+
+                const clearedItem = isInCart
+                  ? { ...item, name: undefined, count: undefined }
+                  : item;
+                return (
+                  <InventorySlot
+                    key={`${inventory.type}-${inventory.id}-${item.slot}`}
+                    item={clearedItem}
+                    ref={index === filteredInventoryItems.length - 1 ? ref : null}
+                    inventoryType={inventory.type}
+                    inventoryGroups={inventory.groups}
+                    inventoryId={inventory.id}
+                    query={query[inv]}
+                  />
+                )
+              })}
             </div>
           </div>
           <div className={`bg-black/70 rounded-lg border border-neutral-500 p-5`}>
@@ -452,38 +531,95 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
 
             <div className="border-b border-neutral-600 my-5"></div>
 
-            <div className='h-[250px]'>
-              <div className='flex items-center justify-center flex-col h-full text-2xl text-neutral-400'>
-                <i className="fa-regular fa-square-plus text-4xl"></i>
-                <p className='font-light'>{(Locale.drag_items || 'Drag shop items here').toUpperCase()}</p>
-              </div>
+            <div className='h-[250px] flex flex-col gap-2 overflow-y-auto pr-1.5' ref={refs}>
+              {shoppingCart.length < 1 && (
+                <div className='flex items-center justify-center flex-col h-full text-2xl text-neutral-400'>
+                  <i className="fa-regular fa-square-plus text-4xl"></i>
+                  <p className='font-light'>{(Locale.drag_items || 'Drag shop items here').toUpperCase()}</p>
+                </div>
+              )}
+
+              {shoppingCart.length > 0 && shoppingCart.map((item, index) => (
+                <div 
+                  key={`shopping-item-${index}`}
+                  className='bg-white/5 border border-neutral-500 rounded-lg flex items-center justify-between px-5 py-3'
+                >
+                  <img 
+                    src={item ? getItemUrl(item) : 'none'}
+                    alt="item-image"
+                    className='w-[75px] h-[75px]'
+                  />
+                  <div className='flex flex-col leading-3'>
+                    <p
+                      className="text-[13px] font-semibold"
+                      style={{
+                        color:
+                          Items[item.name as string]?.rarity === 'common'
+                            ? '#ffffff'
+                            : getColor(Items[item.name as string]?.rarity as string).text,
+                      }}
+                    >
+                      {Items[item.name as string]?.rarity?.toUpperCase()}
+                    </p>
+                    <p className="text-white font-semibold text-xl max-w-[150px] break-all">
+                      {item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name}
+                    </p>
+                  </div>
+                  <div className='flex items-center gap-1 h-5'>
+                    <button 
+                      className='w-6 h-6 bg-white/20 text-white flex items-center justify-center rounded-sm border border-white/50 duration-200 hover:bg-white/35'
+                      onClick={() => setShoppingCart(prev => prev.map((shopItem, i) => i === index ? { ...shopItem, count: Math.max((shopItem.count || 1) - 1, 1) } : shopItem))}
+                    >
+                      -
+                    </button>
+                    <input 
+                      type="number"
+                      className='w-[50px] bg-transparent border border-transparent focus:outline-none focus:border-white text-white text-center font-semibold rounded-md transition-all'
+                      value={(item.count || 1)}
+                      onChange={(e) => setShoppingCart(prev => prev.map((shopItem, i) => i === index ? { ...shopItem, count: Math.max(Number(e.target.value), 1) } : shopItem))}
+                    />
+                    <button 
+                      className='w-6 h-6 bg-white/20 text-white flex items-center justify-center rounded-sm border border-white/50 duration-200 hover:bg-white/35'
+                      onClick={() => setShoppingCart(prev => prev.map((shopItem, i) => i === index ? { ...shopItem, count: (shopItem.count || 1) + 1 } : shopItem))}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <p className='text-neutral-400 text-lg'>${(item.count || 1) * (item.price || 0)}</p>
+                  <i className="hgi hgi-stroke hgi-delete-02 text-white text-2xl cursor-pointer duration-200 hover:text-white/50"
+                  onClick={() => setShoppingCart(prev => prev.filter((_, i) => i !== index))}></i>
+                </div>
+              ))}
             </div>
 
             <div className="border-b border-neutral-600 my-5"></div>
 
             <div className='text-white flex items-center justify-between'>
               <p className='text-lg'>{(Locale.total_cost || 'Total Cost').toUpperCase()}</p>
-              <p className='font-semibold text-2xl'>${0}</p>
+              <p className='font-semibold text-2xl'>${animatedTotal.toLocaleString('en-us', {maximumFractionDigits: 0 })}</p>
             </div>
 
             <div className='flex items-center justify-end gap-3 mt-3'>
               {( !inventory.accounts || inventory.accounts.length === 0 || inventory.accounts.includes('bank') ) && (
                 <button className='text-white flex items-center gap-2 text-xl font-semibold bg-black/50 px-4 py-1.5 rounded-sm border border-neutral-700
-                hover:bg-lime-950/50 hover:border-lime-600 duration-200'>
+                hover:bg-lime-950/50 hover:border-lime-600 duration-200'
+                onClick={() => handleBuy('bank')}>
                   <i className="hgi hgi-stroke hgi-credit-card"></i>
                   <p>{(Locale.pay_bank || 'Pay Bank')}</p>
                 </button>
               )}
               {( !inventory.accounts || inventory.accounts.length === 0 || inventory.accounts.includes('money') ) && (
                 <button className='text-white flex items-center gap-2 text-xl font-semibold bg-black/50 px-4 py-1.5 rounded-sm border border-neutral-700
-                hover:bg-lime-950/50 hover:border-lime-600 duration-200'>
+                hover:bg-lime-950/50 hover:border-lime-600 duration-200'
+                onClick={() => handleBuy('money')}>
                   <i className="hgi hgi-stroke hgi-coins-02"></i>
                   <p>{(Locale.pay_money || 'Pay Cash')}</p>
                 </button>
               )}
               {( inventory.accounts?.includes('black_money') ) && (
                 <button className='text-white flex items-center gap-2 text-xl font-semibold bg-black/50 px-4 py-1.5 rounded-sm border border-neutral-700
-                hover:bg-lime-950/50 hover:border-lime-600 duration-200'>
+                hover:bg-lime-950/50 hover:border-lime-600 duration-200'
+                onClick={() => handleBuy('black_money')}>
                   <i className="hgi hgi-stroke hgi-bitcoin-bag"></i>
                   <p>{(Locale.pay_black_money || 'Pay Dirty Cash')}</p>
                 </button>

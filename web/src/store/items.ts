@@ -33,7 +33,7 @@ export const Items: {
   armour: {
     name: 'armour',
     close: false,
-    label: 'Armour',
+    label: 'Heavy Armour Vest',
     rarity: 'epic',
     stack: true,
     usable: true,

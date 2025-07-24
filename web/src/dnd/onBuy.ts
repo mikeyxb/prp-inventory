@@ -1,16 +1,16 @@
-import { isSlotWithItem } from '../helpers';
+import { findAvailableSlot, isSlotWithItem } from '../helpers';
 import { store } from '../store';
-import { DragSource, DropTarget } from '../typings';
+import { AccountType, SlotWithItem } from '../typings';
 import { Items } from '../store/items';
 import { buyItem } from '../thunks/buyItem';
 
-export const onBuy = (source: DragSource, target: DropTarget) => {
+export const onBuy = (source: SlotWithItem, account?: AccountType) => {
   const { inventory: state } = store.getState();
 
   const sourceInventory = state.rightInventory;
   const targetInventory = state.leftInventory;
 
-  const sourceSlot = sourceInventory.items[source.item.slot - 1];
+  const sourceSlot = sourceInventory.items[source.slot - 1];
 
   if (!isSlotWithItem(sourceSlot)) throw new Error(`Item ${sourceSlot.slot} name === undefined`);
 
@@ -20,18 +20,11 @@ export const onBuy = (source: DragSource, target: DropTarget) => {
 
   if (sourceData === undefined) return console.error(`Item ${sourceSlot.name} data undefined!`);
 
-  const targetSlot = targetInventory.items[target.item.slot - 1];
+  const targetSlot = findAvailableSlot(sourceSlot, sourceData, targetInventory.items);
 
   if (targetSlot === undefined) return console.error(`Target slot undefined`);
 
-  const count =
-    state.itemAmount !== 0
-      ? sourceSlot.count
-        ? state.itemAmount > sourceSlot.count
-          ? sourceSlot.count
-          : state.itemAmount
-        : state.itemAmount
-      : 1;
+  const count = source.count;
 
   const data = {
     fromSlot: sourceSlot,
@@ -39,6 +32,7 @@ export const onBuy = (source: DragSource, target: DropTarget) => {
     fromType: sourceInventory.type,
     toType: targetInventory.type,
     count: count,
+    account: account
   };
 
   store.dispatch(
