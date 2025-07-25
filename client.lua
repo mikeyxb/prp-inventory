@@ -1846,7 +1846,7 @@ end)
 
 RegisterNUICallback('buyItem', function(data, cb)
 	---@type boolean, false | { [1]: number, [2]: SlotWithItem, [3]: SlotWithItem | false, [4]: number}, NotifyProps
-	local response, data, message = lib.callback.await('ox_inventory:buyItem', 100, data)
+	local response, data, message = lib.callback.await('ox_inventory:buyItem', false, data)
 
 	if data then
 		updateInventory({
@@ -1884,7 +1884,7 @@ RegisterNUICallback('craftItem', function(data, cb)
 	local id, index = currentInventory.id, currentInventory.index
 
 	for i = 1, data.count do
-		local success, response = lib.callback.await('ox_inventory:craftItem', 200, id, index, data.fromSlot, data.toSlot)
+		local success, response = lib.callback.await('ox_inventory:craftItem', false, id, index, data.fromSlot, data.toSlot)
 
 		if not success then
 			if response then lib.notify({ type = 'error', description = locale(response or 'cannot_perform') }) end
