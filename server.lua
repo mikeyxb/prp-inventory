@@ -693,6 +693,9 @@ lib.addCommand('viewinv', {
 	Inventory.InspectInventory(source, tonumber(args.invId) or args.invId)
 end)
 
+
+
+--- DROP CUSTOM PROP
 local resourceName = GetCurrentResourceName()
 
 local dropItems = (function()
