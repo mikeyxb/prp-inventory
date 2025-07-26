@@ -734,3 +734,39 @@ end, {
     itemFilter = dropItems,
     typeFilter = { player = true }
 })
+
+
+
+--- THROWABLE ITEMS
+lib.callback.register('ox_inventory:getItemFromSlot', function(source, slot)
+	return exports[resourceName]:GetSlot(source, slot)
+end)
+
+---@param source number
+---@param slot number
+---@param netId number
+lib.callback.register('ox_inventory:threwItem', function(source, slot, netId)
+	local entity = NetworkGetEntityFromNetworkId(netId)
+
+	if not entity then return end
+
+	local item = exports[resourceName]:GetSlot(source, slot)
+
+	CreateThread(function()
+		local success = exports[resourceName]:RemoveItem(source, item.name, item.count, nil, item.slot)
+
+		Wait(1000)
+
+		if success then
+			while #GetEntityVelocity(entity) > 0 do Wait(100) end
+
+			local items = { { item.name, item.count, item.metadata } }
+			local dropId = exports[resourceName]:CustomDrop(item.label, items,
+				GetEntityCoords(entity), 25, 30000, nil, dropItems[item.name])
+
+			if not dropId then return end
+
+			DeleteEntity(entity)
+		end
+	end)
+end)

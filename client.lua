@@ -1679,10 +1679,94 @@ local function isGiveTargetValid(ped, coords)
     return entity == ped and IsEntityVisible(ped)
 end
 
+
+
+--- THROWING SYSTEM
+local function GetDirectionFromRotation(rotation)
+    local dm = (math.pi / 180)
+    return vector3(
+		-math.sin(dm * rotation.z) * math.abs(math.cos(dm * rotation.x)), 
+		math.cos(dm * rotation.z) * math.abs(math.cos(dm * rotation.x)), 
+		math.sin(dm * rotation.x)
+	)
+end
+
+---@param name string
+---@param slot number
+local function throwItem(name, slot)
+	local data = Items[name]
+
+	if not data or not slot or not data.prop then return end
+
+	local coords = GetEntityCoords(playerPed)
+	local direction = GetDirectionFromRotation(GetGameplayCamRot(2))
+	local weight = data.weight or 100
+
+	lib.requestModel(data.prop)
+	local object = CreateObject(data.prop, coords.x, coords.y, coords.z, true, true, false)
+	local boneIndex = GetPedBoneIndex(playerPed, 0xE5F4)
+	AttachEntityToEntity(object, playerPed, boneIndex, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+
+	local animDict = 'weapons@projectile@'
+	local duration = 1500
+
+	lib.playAnim(playerPed, animDict, 'throw_m_fb_stand', 3.0, 3.0, duration)
+
+	SetTimeout(duration - 1000, function()
+		DetachEntity(object, true, false)
+
+		local minWeight = 100.0
+		local maxWeight = 1500.0
+
+		local clampedWeight = math.max(minWeight, math.min(maxWeight, weight))
+
+		local minForce = 10.0
+		local maxForce = 150.0
+
+		local normalized = (clampedWeight - minWeight) / (maxWeight - minWeight)
+		local force = maxForce - normalized * (maxForce - minForce)
+    	
+		ApplyForceToEntity(object, 1, direction.x * force, direction.y * force, direction.z * force + 2.0, 0.0, 0.0, 0.0, 0, false, true, true, false, true)
+
+		lib.callback.await('ox_inventory:threwItem', false, slot, NetworkGetNetworkIdFromEntity(object))
+	end)
+end
+
 RegisterNUICallback('giveItem', function(data, cb)
 	cb(1)
 
     if usingItem then return end
+
+	local item = lib.callback.await('ox_inventory:getItemFromSlot', false, data.slot)
+
+	local props = Items[item.name]
+	
+	if props and props.prop and not props.disableThrow then
+		client.closeInventory()
+
+		prp.showTextUI({
+			{ key = 'LMB', text = locale('ui_throw'):upper() },
+			{ key = 'ESC', text = locale('ui_give'):upper() }
+		})
+
+		while true do
+			DisableFrontendThisFrame()
+			DisablePlayerFiring(cache.playerId, true)
+
+			if IsDisabledControlJustReleased(0, 24) then
+				throwItem(item.name, data.slot)
+				break
+			end
+
+			if IsControlJustReleased(2, 200) then 
+				break
+			end
+
+			Wait(0)
+		end
+
+		prp.hideTextUI()
+	end
 
 	if client.giveplayerlist then
 		local nearbyPlayers = lib.getNearbyPlayers(GetEntityCoords(playerPed), 3.0)
