@@ -33,6 +33,7 @@ client_script 'init.lua'
 ui_page 'web/build/index.html'
 
 files {
+    'metas/**/*.meta',
     'client.lua',
     'server.lua',
     'locales/*.json',
@@ -44,3 +45,8 @@ files {
     'modules/bridge/**/client.lua',
     'data/*.lua',
 }
+
+data_file 'WEAPON_METADATA_FILE' 'metas/**/*_archetypes.meta'
+data_file 'WEAPON_ANIMATIONS_FILE' 'metas/**/*_animation.meta'
+data_file 'PED_PERSONALITY_FILE' 'metas/**/*_personality.meta'
+data_file 'WEAPONINFO_FILE' 'metas/**/*_item.meta'

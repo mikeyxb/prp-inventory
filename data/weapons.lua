@@ -114,6 +114,12 @@ return {
 			throwable = true,
 		},
 
+		['WEAPON_MONEY'] = {
+			label = 'DEV MONEY',
+			weight = 100,
+			throwable = true,
+		},
+
 		['WEAPON_CARBINERIFLE'] = {
 			label = 'Carbine Rifle',
 			weight = 3100,

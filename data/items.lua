@@ -163,7 +163,7 @@ return {
 
 	['money'] = {
 		label = 'Money',
-		prop = `prop_anim_cash_pile_02`
+		prop = `prop_anim_cash_pile_02`,
 	},
 
 	['mustard'] = {
