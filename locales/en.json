@@ -1,7 +1,8 @@
 {
   "ui_use": "Use",
   "ui_give": "Give",
-  "ui_throw": "Throw",
+  "ui_place": "Place",
+  "ui_cancel": "Cancel",
   "ui_close": "Close",
   "ui_drop": "Drop",
   "ui_removeattachments": "Remove attachments",

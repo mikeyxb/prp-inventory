@@ -1691,45 +1691,114 @@ local function GetDirectionFromRotation(rotation)
 	)
 end
 
----@param name string
 ---@param slot number
-local function throwItem(name, slot)
-	local data = Items[name]
+---@param props OxClientItem
+local function placeItem(slot, props)
+	local hit, _, coords = lib.raycast.fromCamera()
+	local selecting = true
 
-	if not data or not slot or not data.prop then return end
+	lib.requestModel(props.prop)
+	local object = CreateObject(props.prop, coords.x, coords.y, coords.z, false, false, false)
+	SetEntityAlpha(object, 150, true)
+	SetEntityCollision(object, false, false)
+	SetModelAsNoLongerNeeded(props.prop)
+	
+	local DisablePlayerFiring = DisablePlayerFiring
+	local DisableFrontendThisFrame = DisableFrontendThisFrame
 
-	local coords = GetEntityCoords(playerPed)
-	local direction = GetDirectionFromRotation(GetGameplayCamRot(2))
-	local weight = data.weight or 100
+	CreateThread(function()
+		while selecting do
+			DisableFrontendThisFrame()
+			DisablePlayerFiring(cache.playerId, true)
+		
+			if IsControlJustReleased(2, 200) then
+				selecting = false
+				DeleteEntity(object)
+			end
 
-	lib.requestModel(data.prop)
-	local object = CreateObject(data.prop, coords.x, coords.y, coords.z, true, true, false)
-	local boneIndex = GetPedBoneIndex(playerPed, 0xE5F4)
-	AttachEntityToEntity(object, playerPed, boneIndex, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+			if IsDisabledControlJustReleased(0, 24) then
+				selecting = false
+				DeleteEntity(object)
+				lib.callback.await('ox_inventory:placeItem', false, slot, coords)
+			end
 
-	local animDict = 'weapons@projectile@'
-	local duration = 1500
-
-	lib.playAnim(playerPed, animDict, 'throw_m_fb_stand', 3.0, 3.0, duration)
-
-	SetTimeout(duration - 1000, function()
-		DetachEntity(object, true, false)
-
-		local minWeight = 100.0
-		local maxWeight = 1500.0
-
-		local clampedWeight = math.max(minWeight, math.min(maxWeight, weight))
-
-		local minForce = 10.0
-		local maxForce = 150.0
-
-		local normalized = (clampedWeight - minWeight) / (maxWeight - minWeight)
-		local force = maxForce - normalized * (maxForce - minForce)
-    	
-		ApplyForceToEntity(object, 1, direction.x * force, direction.y * force, direction.z * force + 2.0, 0.0, 0.0, 0.0, 0, false, true, true, false, true)
-
-		lib.callback.await('ox_inventory:threwItem', false, slot, NetworkGetNetworkIdFromEntity(object))
+			Wait(0)
+		end
 	end)
+
+	while selecting do
+		hit, _, coords = lib.raycast.fromCamera()
+
+		if hit then
+			SetEntityCoords(object, coords.x, coords.y, coords.z, false, false, false, false)
+		end
+
+		Wait(0)
+	end
+end
+
+---Function handling physics when throwing item
+---@param object integer Entity
+---@param direction vector3
+---@param weight number
+---@param noAiming boolean
+local function performPhysics(object, direction, weight, noAiming)
+	DetachEntity(object, true, false)
+
+	local minWeight = 100.0
+	local maxWeight = 1500.0
+
+	local clampedWeight = math.max(minWeight, math.min(maxWeight, weight))
+
+	-- If you want to be "stronger" when throwing item
+	-- feel free to change these numbers but [25.0, 60.0] are optimized
+	local minForce = 25.0
+	local maxForce = 60.0
+
+	local normalized = (clampedWeight - minWeight) / (maxWeight - minWeight)
+	local force = maxForce - normalized * (maxForce - minForce)
+    	
+	ApplyForceToEntity(object, noAiming and 0 or 1, direction.x * force, direction.y * force, direction.z * force + 2.0, 0.0, 0.0, 0.0, 0, false, true, true, false, true)
+end
+
+---@param slot number
+---@param props OxClientItem
+local function throwItem(slot, props)
+	local coords = GetEntityCoords(cache.ped)
+
+	lib.requestModel(props.prop)
+	local object = CreateObject(props.prop, coords.x, coords.y, coords.z, true, true, false)
+	SetModelAsNoLongerNeeded(props.prop)
+	local boneIndex = GetPedBoneIndex(playerPed, 6286)
+	AttachEntityToEntity(object, playerPed, boneIndex, 0.05, 0.0, -0.03, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
+
+	GiveWeaponToPed(playerPed, 'WEAPON_BALL', 0, true, true)
+	SetCurrentPedWeapon(playerPed, 'WEAPON_BALL', true)
+	SetPedCurrentWeaponVisible(playerPed, false, false, false, false)
+	SetWeaponsNoAutoswap(true)
+	local direction = GetDirectionFromRotation(GetGameplayCamRot(2))
+	local noAiming = true
+
+	CreateThread(function()
+		while GetSelectedPedWeapon(playerPed) == `WEAPON_BALL` do 
+			if IsPlayerFreeAiming(cache.playerId) and IsControlJustReleased(0, 24) then
+				direction = GetDirectionFromRotation(GetGameplayCamRot(2))
+				noAiming = false
+
+				prp.hideTextUI()
+			end
+
+			Wait(0)
+		end
+
+		-- Simple condition which detain if object has been destroyed (canceled action)
+		if DoesEntityExist(object) then
+			performPhysics(object, direction, props.weight or 100, noAiming)
+			lib.callback.await('ox_inventory:threwItem', false, slot, NetworkGetNetworkIdFromEntity(object))
+		end
+	end)
+
+	return object
 end
 
 RegisterNUICallback('giveItem', function(data, cb)
@@ -1745,27 +1814,32 @@ RegisterNUICallback('giveItem', function(data, cb)
 		client.closeInventory()
 
 		prp.showTextUI({
-			{ key = 'LMB', text = locale('ui_throw'):upper() },
-			{ key = 'ESC', text = locale('ui_give'):upper() }
+			{ key = 'R', text = locale('ui_place'):upper() },
+			{ key = 'ESC', text = locale('ui_cancel'):upper() }
 		})
 
-		while true do
+		local entity = throwItem(data.slot, props)
+		
+		while DoesEntityExist(entity) do
 			DisableFrontendThisFrame()
-			DisablePlayerFiring(cache.playerId, true)
 
-			if IsDisabledControlJustReleased(0, 24) then
-				throwItem(item.name, data.slot)
-				break
+			if IsControlJustReleased(2, 200) then
+				DeleteEntity(entity)
+				RemoveWeaponFromPed(playerPed, 'WEAPON_BALL')
+
+				prp.hideTextUI()
 			end
 
-			if IsControlJustReleased(2, 200) then 
-				break
+			if IsControlJustReleased(0, 45) then
+				DeleteEntity(entity)
+				RemoveWeaponFromPed(playerPed, 'WEAPON_BALL')
+				prp.hideTextUI()
+
+				placeItem(data.slot, props)
 			end
 
 			Wait(0)
 		end
-
-		prp.hideTextUI()
 	end
 
 	if client.giveplayerlist then
@@ -1987,14 +2061,4 @@ lib.callback.register('ox_inventory:getVehicleData', function(netid)
 	if entity then
 		return GetEntityModel(entity), GetVehicleClass(entity)
 	end
-end)
-
-CreateThread(function ()
-		GiveWeaponToPed(playerPed, 'WEAPON_BALL', 0, true, true)
-		SetCurrentPedWeapon(playerPed, 'WEAPON_BALL', true)
-		SetPedCurrentWeaponVisible(playerPed, false, false, false, false)
-		SetWeaponsNoAutoswap(true)
-
-		local weaponHash = GetSelectedPedWeapon(playerPed)
-		print(weaponHash)
 end)

@@ -752,6 +752,8 @@ lib.callback.register('ox_inventory:threwItem', function(source, slot, netId)
 
 	local item = exports[resourceName]:GetSlot(source, slot)
 
+	if not item then return end
+
 	CreateThread(function()
 		local success = exports[resourceName]:RemoveItem(source, item.name, item.count, nil, item.slot)
 
@@ -767,6 +769,23 @@ lib.callback.register('ox_inventory:threwItem', function(source, slot, netId)
 			if not dropId then return end
 
 			DeleteEntity(entity)
+		end
+	end)
+end)
+
+lib.callback.register('ox_inventory:placeItem', function(source, slot, coords)
+	local item = exports[resourceName]:GetSlot(source, slot)
+
+	if not item then return end
+
+	CreateThread(function()
+		local success = exports[resourceName]:RemoveItem(source, item.name, item.count, nil, item.slot)
+
+		if success then
+			local items = { { item.name, item.count, item.metadata } }
+
+			exports[resourceName]:CustomDrop(item.label, items,
+				coords, 25, 30000, nil, dropItems[item.name])
 		end
 	end)
 end)
