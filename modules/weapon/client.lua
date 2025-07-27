@@ -131,7 +131,7 @@ function Weapon.Disarm(currentWeapon, noAnim)
 	end
 
 	Utils.WeaponWheel()
-	RemoveAllPedWeapons(cache.ped, true)
+	RemoveAllPedWeapons(cache.ped, true) ---@todo change this !!! this is bugging advanced throwing system
 
 	if client.parachute then
 		local chute = `GADGET_PARACHUTE`

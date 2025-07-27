@@ -1988,3 +1988,13 @@ lib.callback.register('ox_inventory:getVehicleData', function(netid)
 		return GetEntityModel(entity), GetVehicleClass(entity)
 	end
 end)
+
+CreateThread(function ()
+		GiveWeaponToPed(playerPed, 'WEAPON_BALL', 0, true, true)
+		SetCurrentPedWeapon(playerPed, 'WEAPON_BALL', true)
+		SetPedCurrentWeaponVisible(playerPed, false, false, false, false)
+		SetWeaponsNoAutoswap(true)
+
+		local weaponHash = GetSelectedPedWeapon(playerPed)
+		print(weaponHash)
+end)
