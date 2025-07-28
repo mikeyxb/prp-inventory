@@ -1745,6 +1745,27 @@ end
 local function performPhysics(object, direction, weight, noAiming)
 	DetachEntity(object, true, false)
 
+	-- Check if ped is in vehicle if so add vector z to object so it won't bug with vehicle
+	if cache.vehicle then
+		local curCoords = GetEntityCoords(cache.vehicle)
+		SetEntityNoCollisionEntity(cache.ped, object, false)
+		SetEntityNoCollisionEntity(cache.vehicle, object, false)
+
+		-- Animations
+		local leftSide = { -1, 1, 3, 5 }
+		local rightSide = { 0, 2, 4, 6 }
+		local isOnBike = IsThisModelABike(GetEntityModel(cache.vehicle))
+
+		local side = lib.table.contains(leftSide, cache.seat) and 'leftSide' 
+			or lib.table.contains(rightSide, cache.seat) and 'rightSide' or nil
+
+		if side then
+			lib.playAnim(cache.ped, not isOnBike and 'anim@veh@drivebyraptor@ds_grenade' or 'veh@drivebybike@sport@front@grenade', side == 'leftSide' and 'throw_90l' or 'throw_90r', 3.0, 3.0, 1500, 16)
+		end
+
+		SetEntityCoords(object, curCoords.x, curCoords.y, curCoords.z + 1.0, false, false, false, false)
+	end
+
 	local minWeight = 100.0
 	local maxWeight = 1500.0
 
@@ -1778,18 +1799,23 @@ local function throwItem(slot, props)
 	SetWeaponsNoAutoswap(true)
 	local direction = GetDirectionFromRotation(GetGameplayCamRot(2))
 	local noAiming = true
+	local hasShoot = false
 
 	CreateThread(function()
-		while GetSelectedPedWeapon(playerPed) == `WEAPON_BALL` do 
+		while not hasShoot do
 			if IsPlayerFreeAiming(cache.playerId) and IsControlJustReleased(0, 24) then
 				direction = GetDirectionFromRotation(GetGameplayCamRot(2))
 				noAiming = false
-
-				prp.hideTextUI()
+				hasShoot = true
+			elseif not IsPlayerFreeAiming(cache.playerId) and IsControlJustReleased(0, 24) then
+				noAiming = true
+				hasShoot = true
 			end
 
 			Wait(0)
 		end
+
+		prp.hideTextUI()
 
 		-- Simple condition which detain if object has been destroyed (canceled action)
 		if DoesEntityExist(object) then

@@ -114,12 +114,6 @@ return {
 			throwable = true,
 		},
 
-		['WEAPON_MONEY'] = {
-			label = 'DEV MONEY',
-			weight = 100,
-			throwable = true,
-		},
-
 		['WEAPON_CARBINERIFLE'] = {
 			label = 'Carbine Rifle',
 			weight = 3100,
@@ -598,7 +592,8 @@ return {
 			label = 'SMG',
 			weight = 3084,
 			durability = 0.8,
-			ammoname = 'ammo-9'
+			ammoname = 'ammo-9',
+			prop = `w_sb_smg`
 		},
 
 		['WEAPON_SMG_MK2'] = {
