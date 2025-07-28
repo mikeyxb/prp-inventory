@@ -1683,12 +1683,15 @@ end
 
 --- THROWING SYSTEM
 local function GetDirectionFromRotation(rotation)
-    local dm = (math.pi / 180)
+    local radX = math.rad(rotation.x)
+    local radZ = math.rad(rotation.z)
+    local cosX = math.cos(radX)
+
     return vector3(
-		-math.sin(dm * rotation.z) * math.abs(math.cos(dm * rotation.x)), 
-		math.cos(dm * rotation.z) * math.abs(math.cos(dm * rotation.x)), 
-		math.sin(dm * rotation.x)
-	)
+        -math.sin(radZ) * cosX,
+        math.cos(radZ) * cosX,
+        math.sin(radX)
+    )
 end
 
 ---@param slot number
@@ -1745,25 +1748,13 @@ end
 local function performPhysics(object, direction, weight, noAiming)
 	DetachEntity(object, true, false)
 
-	-- Check if ped is in vehicle if so add vector z to object so it won't bug with vehicle
+	-- Collisions with ped and vehicle
+	SetEntityNoCollisionEntity(cache.ped, object, false)
 	if cache.vehicle then
-		local curCoords = GetEntityCoords(cache.vehicle)
-		SetEntityNoCollisionEntity(cache.ped, object, false)
+		local curCoords = GetEntityCoords(cache.ped)
 		SetEntityNoCollisionEntity(cache.vehicle, object, false)
-
-		-- Animations
-		local leftSide = { -1, 1, 3, 5 }
-		local rightSide = { 0, 2, 4, 6 }
-		local isOnBike = IsThisModelABike(GetEntityModel(cache.vehicle))
-
-		local side = lib.table.contains(leftSide, cache.seat) and 'leftSide' 
-			or lib.table.contains(rightSide, cache.seat) and 'rightSide' or nil
-
-		if side then
-			lib.playAnim(cache.ped, not isOnBike and 'anim@veh@drivebyraptor@ds_grenade' or 'veh@drivebybike@sport@front@grenade', side == 'leftSide' and 'throw_90l' or 'throw_90r', 3.0, 3.0, 1500, 16)
-		end
-
-		SetEntityCoords(object, curCoords.x, curCoords.y, curCoords.z + 1.0, false, false, false, false)
+		-- Add vector z to object if in vehicle
+		SetEntityCoords(object, curCoords.x, curCoords.y, curCoords.z + 0.5, false, false, false, false)
 	end
 
 	local minWeight = 100.0
@@ -1790,10 +1781,13 @@ local function throwItem(slot, props)
 	lib.requestModel(props.prop)
 	local object = CreateObject(props.prop, coords.x, coords.y, coords.z, true, true, false)
 	SetModelAsNoLongerNeeded(props.prop)
-	local boneIndex = GetPedBoneIndex(playerPed, 6286)
-	AttachEntityToEntity(object, playerPed, boneIndex, 0.05, 0.0, -0.03, 0.0, 0.0, 0.0, true, true, false, true, 1, true)
 
-	GiveWeaponToPed(playerPed, 'WEAPON_BALL', 0, true, true)
+	local leftSeats = { -1, 1, 3, 5 }
+	local rawIndex = (cache.vehicle and IsThisModelACar(GetEntityModel(cache.vehicle)) and lib.table.contains(leftSeats, cache.seat)) and 60309 or 28422
+	local boneIndex = GetPedBoneIndex(playerPed, rawIndex)
+	AttachEntityToEntity(object, playerPed, boneIndex, 0.06, 0.0, -0.05, 0.0, 0.0, 0.0, true, true, false, true, false, true)
+
+	GiveWeaponToPed(playerPed, 'WEAPON_BALL', 1, true, true)
 	SetCurrentPedWeapon(playerPed, 'WEAPON_BALL', true)
 	SetPedCurrentWeaponVisible(playerPed, false, false, false, false)
 	SetWeaponsNoAutoswap(true)
@@ -1814,6 +1808,9 @@ local function throwItem(slot, props)
 
 			Wait(0)
 		end
+
+		Wait(cache.vehicle and 0 or 200)
+		RemoveWeaponFromPed(cache.ped, 'WEAPON_BALL')
 
 		prp.hideTextUI()
 
