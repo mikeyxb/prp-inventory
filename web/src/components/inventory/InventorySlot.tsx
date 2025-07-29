@@ -1,13 +1,11 @@
-import React, { useCallback, useRef } from 'react';
+import React, { ReactElement, useCallback, useRef } from 'react';
 import { DragSource, Inventory, InventoryType, Slot, SlotWithItem } from '../../typings';
 import { useDrag, useDragDropManager, useDrop } from 'react-dnd';
 import { useAppDispatch } from '../../store';
 import { onDrop } from '../../dnd/onDrop';
-import { onBuy } from '../../dnd/onBuy';
 import { Items } from '../../store/items';
 import { canCraftItem, canPurchaseItem, getItemUrl, isSlotWithItem } from '../../helpers';
 import { onUse } from '../../dnd/onUse';
-import { onCraft } from '../../dnd/onCraft';
 import useNuiEvent from '../../hooks/useNuiEvent';
 import { ItemsPayload } from '../../reducers/refreshSlots';
 import { closeTooltip, openTooltip } from '../../store/tooltip';
@@ -17,16 +15,16 @@ import { Locale } from '../../store/locale';
 import dragSound from '../../assets/sounds/drag.wav';
 
 export const getColor = (rarity: string): { text: string; background: string } => {
-  const defaultColor = { text: '#757575', background: 'radial-gradient(#00000050, #51515150)' };
+  const defaultColor = { text: '#ffffff', background: 'radial-gradient(#00000050, #51515150)' };
   if (!rarity) return defaultColor;
 
   switch (rarity.toLowerCase()) {
     case 'rare':
       return { text: '#0ea5e9', background: 'radial-gradient(#00000000, #0ea5e920)' };
     case 'epic':
-      return { text: '#db2777', background: 'radial-gradient(#00000000, #be185d25)' };
+      return { text: '#c026d3', background: 'radial-gradient(#00000000, #be185d25)' };
     case 'legendary':
-      return { text: '#a16207', background: 'radial-gradient(#00000000, #a1620725)' };
+      return { text: '#eab308', background: 'radial-gradient(#00000000, #a1620725)' };
     case 'uncommon':
       return { text: '#84cc16', background: 'radial-gradient(#00000050, #84cc1610)' };
     default:
@@ -40,10 +38,11 @@ interface SlotProps {
   inventoryGroups: Inventory['groups'];
   item: Slot;
   query: string;
+  backgroundImage?: React.ReactNode;
 }
 
 const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> = (
-  { item, inventoryId, inventoryType, inventoryGroups, query },
+  { item, inventoryId, inventoryType, inventoryGroups, query, backgroundImage },
   ref
 ) => {
   const manager = useDragDropManager();
@@ -103,8 +102,10 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
       },
       canDrop: (source) =>
         (source.item.slot !== item.slot || source.inventory !== inventoryType) &&
+        source.inventory !== InventoryType.SHOP &&
+        source.inventory !== InventoryType.CRAFTING &&
         inventoryType !== InventoryType.SHOP &&
-        inventoryType !== InventoryType.CRAFTING,
+        inventoryType !== InventoryType.CRAFTING
     }),
     [inventoryType, item]
   );
@@ -152,7 +153,7 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
       style={
         {
           '--borderColor': matchesQuery(item, query)
-            ? getColor(Items[item.name as string]?.rarity as string).text
+            ? Items[item.name as string]?.rarity !== 'common' && isSlotWithItem(item) ? getColor(Items[item.name as string]?.rarity as string).text : '#757575'
             : undefined,
           filter:
             !canPurchaseItem(item, { type: inventoryType, groups: inventoryGroups }) ||
@@ -162,6 +163,11 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
         } as React.CSSProperties
       }
     >
+      {!isSlotWithItem(item) && backgroundImage && (
+        <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none'>
+          {backgroundImage}
+        </div>
+      )}
       {isSlotWithItem(item) && matchesQuery(item, query) && (
         <div
           className="p-1.5 text-[#a8a8a8] text-xs relative w-full h-full cursor-pointer"
@@ -188,6 +194,12 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
             alt={item.name}
           />
 
+          {inventoryType === 'player' && item.slot <= 5 && <div className="absolute text-black font-medium top-0 left-0 w-4 h-5 flex items-center justify-center" 
+            style={{ 
+              backgroundColor: getColor(Items[item.name as string]?.rarity as string).text,
+              borderBottomRightRadius: '8px' 
+            }}>{item.slot}</div>}
+
           <div className="leading-3 font-[350] relative z-10">
             <p
               className="absolute top-0 right-0 text-[10px] font-medium"
@@ -200,8 +212,26 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
             >
               {Items[item.name as string]?.rarity?.toUpperCase()}
             </p>
-            <p>{item.count > 1 ? item.count.toLocaleString('en-us') + `x` : ''}</p>
-            <p className="text-[11px]">
+            <div className={`${inventoryType === 'player' && item.slot <= 5 && 'absolute left-3.5'}`}>
+              <p className='text-[11px]'>{item.count > 1 ? item.count.toLocaleString('en-us') + `x` : ''}</p>
+              {inventoryType !== 'player' && inventoryType !== 'container' && (
+                <p className='text-[11px]'>
+                  {item.weight > 0
+                    ? item.weight >= 1000
+                      ? `${(item.weight / 1000).toLocaleString('en-us', {
+                          minimumFractionDigits: 1,
+                        })}kg `
+                      : `${item.weight.toLocaleString('en-us', {
+                          minimumFractionDigits: 1,
+                        })}g `
+                    : ''}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {(inventoryType === 'player' || inventoryType === 'container') && (
+            <p className='text-[11px] absolute bottom-1.5 right-1.5'>
               {item.weight > 0
                 ? item.weight >= 1000
                   ? `${(item.weight / 1000).toLocaleString('en-us', {
@@ -212,10 +242,12 @@ const InventorySlot: React.ForwardRefRenderFunction<HTMLDivElement, SlotProps> =
                     })}g `
                 : ''}
             </p>
-          </div>
+          )}
+
           <p className="absolute text-white w-1/2 bottom-[7px] left-[7px] font-semibold z-10">
             {item.metadata?.label ? item.metadata.label : Items[item.name]?.label || item.name}
           </p>
+
           {item?.durability !== undefined && (
             <div className="absolute h-1 w-full bottom-0 left-0">
               <div

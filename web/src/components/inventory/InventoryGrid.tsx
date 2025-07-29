@@ -167,7 +167,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
   };
 
   const filteredInventoryItems = useMemo(() => {
-    return inventory.items.slice(0, (page + 1) * PAGE_SIZE).filter((item) => {
+    return inventory.items.slice(inv === 'left' ? 9 : 0, (page + 1) * PAGE_SIZE).filter((item) => {
       const label = item.metadata?.label ?? Items[item.name as string]?.label ?? item.name ?? '';
       return label.toLowerCase().includes(craftQuery.toLowerCase());
     });
