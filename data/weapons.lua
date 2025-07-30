@@ -7,6 +7,16 @@ return {
 			ammoname = 'ammo-rifle2',
 		},
 
+		['armour'] = {
+			label = 'Light Armour Vest',
+			weight = 3000,
+			stack = false,
+			client = {
+				anim = { dict = 'clothingshirt', clip = 'try_shirt_positive_d' },
+				usetime = 3500
+			}
+		},
+
 		['WEAPON_SNOWLAUNCHER'] = {
 			label = 'Snowball Launcher',
 			weight = 1000,

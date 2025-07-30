@@ -439,6 +439,7 @@ local function useItem(data, cb, noAnim)
     end
 
     if invOpen and data.close then client.closeInventory() end
+	if data.name:lower():find('^armour') and data.slot ~= 7 then return end 
 
     usingItem = true
     ---@type boolean?
@@ -689,6 +690,7 @@ local function useSlot(slot, noAnim)
     end
 end
 exports('useSlot', useSlot)
+RegisterNetEvent('ox_inventory:useSlot', useSlot)
 
 ---@param id number
 ---@param slot number
@@ -2083,5 +2085,17 @@ lib.callback.register('ox_inventory:getVehicleData', function(netid)
 
 	if entity then
 		return GetEntityModel(entity), GetVehicleClass(entity)
+	end
+end)
+
+-- Custom code for armour
+
+AddEventHandler('gameEventTriggered', function(event, args)
+	if event == 'CEventNetworkEntityDamage' then
+		local targetPed = args[1]
+
+		if targetPed == cache.ped then
+			TriggerServerEvent('ox_inventory:damageArmour')
+		end
 	end
 end)

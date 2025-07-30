@@ -199,16 +199,6 @@ return {
 		allowArmed = true
 	},
 
-	['armour'] = {
-		label = 'Bulletproof Vest',
-		weight = 3000,
-		stack = false,
-		client = {
-			anim = { dict = 'clothingshirt', clip = 'try_shirt_positive_d' },
-			usetime = 3500
-		}
-	},
-
 	['clothing'] = {
 		label = 'Clothing',
 		consume = 0,

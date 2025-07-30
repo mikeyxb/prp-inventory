@@ -789,3 +789,64 @@ lib.callback.register('ox_inventory:placeItem', function(source, slot, coords)
 		end
 	end)
 end)
+
+-- Custom hooks for slots
+
+exports[resourceName]:registerHook('swapItems', function(payload)
+	local slot = type(payload.toSlot) == 'number' and payload.toSlot or type(payload.toSlot) == 'table' and payload.toSlot.slot
+	local fromSlot = type(payload.fromSlot) == 'number' and payload.fromSlot or type(payload.fromSlot) == 'table' and payload.fromSlot.slot
+
+	if not slot or not fromSlot then return false end
+
+	local ped = GetPlayerPed(payload.source)
+
+	if fromSlot == 7 then
+		---@todo implement heavy, light vest system
+		local armour = GetPedArmour(ped)
+		SetPedArmour(ped, math.max(0, armour - math.floor(payload.fromSlot.metadata.durability / 2)))
+	end
+
+	if slot > 9 or (slot > 2 and slot < 6 and not payload.fromSlot.name:find('^WEAPON_')) then
+		return true
+	end
+
+	-- Weapon slots
+	if slot < 3 and payload.fromSlot.name:upper():find('^WEAPON_') then
+		return true
+	end
+
+	-- Body armor
+	if slot == 7 and payload.fromSlot.name:lower():find('^armour') then
+		SetTimeout(50, function()
+			TriggerClientEvent('ox_inventory:useSlot', payload.source, 7)
+		end)
+
+		local armour = GetPedArmour(ped)
+		SetPedArmour(ped, math.min(100, armour + math.floor(payload.fromSlot.metadata.durability / 2)))
+
+		return true
+	end
+
+	return false
+end, {
+    typeFilter = { player = true }
+})
+
+-- No need to secure this event because it's triggering from source and applying to source
+-- so if cheater would trigger this event he would damaged armour that belongs to him,
+-- he would damage himself basically
+RegisterNetEvent('ox_inventory:damageArmour', function()
+	local src = source
+
+	local armour = exports[resourceName]:GetSlot(src, 7)
+
+	if armour then
+		local level = GetPedArmour(GetPlayerPed(src))
+
+		exports[resourceName]:SetDurability(src, 7, level * 2)
+
+		if armour.metadata.durability <= 0 then
+			exports[shared.resource]:RemoveItem(src, armour.name, 1, nil, 7)
+		end
+	end
+end)

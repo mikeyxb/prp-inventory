@@ -136,7 +136,7 @@ export const canStack = (sourceSlot: Slot, targetSlot: Slot) =>
   sourceSlot.name === targetSlot.name && isEqual(sourceSlot.metadata, targetSlot.metadata);
 
 export const findAvailableSlot = (item: Slot, data: ItemData, items: Slot[], splitting?: boolean) => {
-  if (!data.stack || splitting) return items.find((target) => target.name === undefined);
+  if (!data.stack || splitting) return items.find((target) => target.name === undefined && target.slot > 9);
 
   const stackableSlot = items.find((target) => target.name === item.name && isEqual(target.metadata, item.metadata));
 
