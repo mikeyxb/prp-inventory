@@ -135,12 +135,12 @@ export const isSlotWithItem = (slot: Slot, strict: boolean = false): slot is Slo
 export const canStack = (sourceSlot: Slot, targetSlot: Slot) =>
   sourceSlot.name === targetSlot.name && isEqual(sourceSlot.metadata, targetSlot.metadata);
 
-export const findAvailableSlot = (item: Slot, data: ItemData, items: Slot[], splitting?: boolean) => {
-  if (!data.stack || splitting) return items.find((target) => target.name === undefined && target.slot > 9);
+export const findAvailableSlot = (item: Slot, data: ItemData, items: Slot[], splitting?: boolean, targetType?: Inventory['type']) => {
+  if (!data.stack || splitting) return items.find((target) => target.name === undefined && (targetType === InventoryType.PLAYER ? target.slot > 9 : true));
 
-  const stackableSlot = items.find((target) => target.name === item.name && isEqual(target.metadata, item.metadata));
+  const stackableSlot = items.find((target) => target.name === item.name && isEqual(target.metadata, item.metadata) && (targetType === InventoryType.PLAYER ? target.slot > 9 : true));
 
-  return stackableSlot || items.find((target) => target.name === undefined);
+  return stackableSlot || items.find((target) => target.name === undefined && (targetType === InventoryType.PLAYER ? target.slot > 9 : true));
 };
 
 export const getTargetInventory = (

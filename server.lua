@@ -800,10 +800,22 @@ exports[resourceName]:registerHook('swapItems', function(payload)
 
 	local ped = GetPlayerPed(payload.source)
 
-	if fromSlot == 7 then
-		---@todo implement heavy, light vest system
+	if payload.toType ~= 'player' then  
+		if fromSlot == 7 then
+			local vest = Items(payload.fromSlot.name)
+			local armour = GetPedArmour(ped)
+
+			SetPedArmour(ped, math.max(0, armour - math.floor(payload.fromSlot.metadata.durability / vest.divider)))
+		end
+
+		return true
+	end
+
+	if fromSlot == 7 and (slot > 9 or (slot > 2 and slot < 6)) then
+		local vest = Items(payload.fromSlot.name)
 		local armour = GetPedArmour(ped)
-		SetPedArmour(ped, math.max(0, armour - math.floor(payload.fromSlot.metadata.durability / 2)))
+
+		SetPedArmour(ped, math.max(0, armour - math.floor(payload.fromSlot.metadata.durability / vest.divider)))
 	end
 
 	if slot > 9 or (slot > 2 and slot < 6 and not payload.fromSlot.name:find('^WEAPON_')) then
@@ -821,8 +833,10 @@ exports[resourceName]:registerHook('swapItems', function(payload)
 			TriggerClientEvent('ox_inventory:useSlot', payload.source, 7)
 		end)
 
+		local vest = Items(payload.fromSlot.name)
 		local armour = GetPedArmour(ped)
-		SetPedArmour(ped, math.min(100, armour + math.floor(payload.fromSlot.metadata.durability / 2)))
+
+		SetPedArmour(ped, math.min(100, armour + math.floor(payload.fromSlot.metadata.durability / vest.divider)))
 
 		return true
 	end
@@ -838,12 +852,13 @@ end, {
 RegisterNetEvent('ox_inventory:damageArmour', function()
 	local src = source
 
-	local armour = exports[resourceName]:GetSlot(src, 7)
+	local armour = exports[shared.resource]:GetSlot(src, 7)
 
 	if armour then
+		local vest = Items(armour.name)
 		local level = GetPedArmour(GetPlayerPed(src))
 
-		exports[resourceName]:SetDurability(src, 7, level * 2)
+		exports[shared.resource]:SetDurability(src, 7, math.min(100, level * vest.divider))
 
 		if armour.metadata.durability <= 0 then
 			exports[shared.resource]:RemoveItem(src, armour.name, 1, nil, 7)

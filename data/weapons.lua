@@ -9,11 +9,26 @@ return {
 
 		['armour'] = {
 			label = 'Light Armour Vest',
-			weight = 3000,
+			weight = 1500,
 			stack = false,
+			rarity = 'uncommon',
+			divider = 2, -- Higher value lower quality, 100 / 2 (100% durability == 50% armour)
 			client = {
 				anim = { dict = 'clothingshirt', clip = 'try_shirt_positive_d' },
-				usetime = 3500
+				usetime = 2000
+			}
+		},
+
+		['armour_heavy'] = {
+			label = 'Heavy Armour Vest',
+			weight = 3000,
+			stack = false,
+			rarity = 'rare',
+			divider = 1, -- Higher value lower quality, 100 / 1 (100% durability == 100% armour)
+			client = {
+				anim = { dict = 'clothingshirt', clip = 'try_shirt_positive_d' },
+				usetime = 3500,
+				image = 'armour.png'
 			}
 		},
 

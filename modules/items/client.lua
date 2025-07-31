@@ -99,7 +99,26 @@ Item('bandage', function(data, slot)
 	end)
 end)
 
-Item('armour', function(data, slot) ox_inventory:useItem(data) end)
+for itemName, _ in pairs(Items) do
+	local isArmour = itemName:find('^armour')
+
+	if isArmour then
+		Item(itemName, function(data, slot) ox_inventory:useItem(data) end)
+	end
+end
+
+Item('armor_plate', function(data, slot)
+	local armour = GetPedArmour(cache.ped)
+	
+	if armour < 100 then
+		ox_inventory:useItem(data, function(data)
+			if data then
+				SetPlayerMaxArmour(PlayerData.id, 100)
+				SetPedArmour(cache.ped, math.min(100, armour + 20))
+			end
+		end)
+	end
+end)
 
 client.parachute = false
 Item('parachute', function(data, slot)

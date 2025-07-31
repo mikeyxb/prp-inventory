@@ -48,4 +48,13 @@ export const Items: {
     usable: true,
     count: 0,
   },
+  armour_plate: {
+    name: 'armour_plate',
+    close: false,
+    label: 'Armour Plate',
+    rarity: 'rare',
+    stack: true,
+    usable: true,
+    count: 0,
+  }
 };

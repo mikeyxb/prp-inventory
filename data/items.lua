@@ -218,6 +218,18 @@ return {
 		weight = 80,
 	},
 
+	-- Can't call it armour because of vest system, items with 'armour' in name is considered as vest item...
+	['armor_plate'] = {
+		label = 'Armour Plate',
+		weight = 250,
+		stack = false,
+		client = {
+			anim = { dict = 'clothingshirt', clip = 'try_shirt_positive_d' },
+			usetime = 3500,
+			image = 'armour_plate.png'
+		}
+	},
+
 	['small_backpack'] = {
 		label = 'Small Backpack',
 		weight = 100,

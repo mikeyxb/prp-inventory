@@ -46,6 +46,12 @@ debugData([
             count: 5,
             metadata: { description: 'Delicious burger', durability: 27 },
           },
+          {
+            slot: 12,
+            name: 'armour_plate',
+            weight: 250,
+            count: 1
+          }
         ],
       },
       /*
