@@ -439,7 +439,11 @@ local function useItem(data, cb, noAnim)
     end
 
     if invOpen and data.close then client.closeInventory() end
-	if data.name:lower():find('^armour') and data.slot ~= 7 then return end 
+
+	if data.name:lower():find('^armour') and data.slot ~= 7 
+	or data.name:lower():find('parachute') and data.slot ~= 9 then
+		return
+	end 
 
     usingItem = true
     ---@type boolean?
@@ -1813,6 +1817,7 @@ local function throwItem(slot, props)
 
 		Wait(cache.vehicle and 0 or 200)
 		RemoveWeaponFromPed(cache.ped, 'WEAPON_BALL')
+		SetCurrentPedWeapon(cache.ped, 'WEAPON_UNARMED', true)
 
 		prp.hideTextUI()
 

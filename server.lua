@@ -790,8 +790,9 @@ lib.callback.register('ox_inventory:placeItem', function(source, slot, coords)
 	end)
 end)
 
--- Custom hooks for slots
+local weaponHotbar = GetConvarInt('inventory:weaponslots', 1) == 1
 
+-- Custom hooks for slots (utility part)
 exports[resourceName]:registerHook('swapItems', function(payload)
 	local slot = type(payload.toSlot) == 'number' and payload.toSlot or type(payload.toSlot) == 'table' and payload.toSlot.slot
 	local fromSlot = type(payload.fromSlot) == 'number' and payload.fromSlot or type(payload.fromSlot) == 'table' and payload.fromSlot.slot
@@ -818,12 +819,12 @@ exports[resourceName]:registerHook('swapItems', function(payload)
 		SetPedArmour(ped, math.max(0, armour - math.floor(payload.fromSlot.metadata.durability / vest.divider)))
 	end
 
-	if slot > 9 or (slot > 2 and slot < 6 and not payload.fromSlot.name:find('^WEAPON_')) then
+	if slot > 9 or (slot > 2 and slot < 6 and not payload.fromSlot.name:find('^WEAPON_')) and weaponHotbar then
 		return true
 	end
 
 	-- Weapon slots
-	if slot < 3 and payload.fromSlot.name:upper():find('^WEAPON_') then
+	if slot < 3 and payload.fromSlot.name:upper():find('^WEAPON_') and weaponHotbar then
 		return true
 	end
 
@@ -837,6 +838,25 @@ exports[resourceName]:registerHook('swapItems', function(payload)
 		local armour = GetPedArmour(ped)
 
 		SetPedArmour(ped, math.min(100, armour + math.floor(payload.fromSlot.metadata.durability / vest.divider)))
+
+		return true
+	end
+
+	-- Phone
+	if slot == 8 and payload.fromSlot.name:lower():find('phone') then
+		return true
+	end
+
+	-- Backpack
+	if slot == 6 and payload.fromSlot.name:lower():find('backpack') then
+		return true
+	end
+
+	-- Parachute
+	if slot == 9 and payload.fromSlot.name:lower():find('parachute') then
+		SetTimeout(50, function()
+			TriggerClientEvent('ox_inventory:useSlot', payload.source, 9)
+		end)
 
 		return true
 	end
