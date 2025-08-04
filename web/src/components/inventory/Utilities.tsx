@@ -1,9 +1,10 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useIntersection } from "../../hooks/useIntersection";
 import { useAppSelector } from "../../store";
 import { selectLeftInventory } from "../../store/inventory";
 import InventorySlot from "./InventorySlot";
 import { Locale } from "../../store/locale";
+import useNuiEvent from "../../hooks/useNuiEvent";
 
 const Utilities: React.FC = () => {
     const leftInventory = useAppSelector(selectLeftInventory);
@@ -11,6 +12,11 @@ const Utilities: React.FC = () => {
     const containerRef = useRef(null);
     const { ref, entry } = useIntersection({ threshold: 0.5 });
     const isBusy = useAppSelector((state) => state.inventory.isBusy);
+    const [injury, setInjury] = useState<boolean>(false);
+
+    useNuiEvent('showInjury', (show: boolean) => {
+        setInjury(show);
+    })
 
     return (
         <div 
@@ -199,9 +205,11 @@ const Utilities: React.FC = () => {
                             </svg>
                         </div>
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                            <svg width="208" height="510" viewBox="0 0 208 510" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                {/* SPINE */} <line x1="105" y1="100" x2="105" y2="250" stroke="red" strokeWidth={1.5} filter="drop-shadow(0 0 10px red)" />
-                            </svg>
+                            {injury &&
+                                <svg width="208" height="510" viewBox="0 0 208 510" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    {/* SPINE */} <line x1="105" y1="100" x2="105" y2="250" stroke="red" strokeWidth={1.5} filter="drop-shadow(0 0 10px red)" />
+                                </svg>
+                            }
                         </div>
                     </div>
                 </div>
