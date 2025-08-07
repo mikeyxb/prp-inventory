@@ -1326,6 +1326,7 @@ RegisterNetEvent('ox_inventory:setPlayerInventory', function(currentDrops, inven
 	SendNUIMessage({
 		action = 'init',
 		data = {
+			serverId = cache.serverId,
 			locale = uiLocales,
 			items = ItemData,
 			leftInventory = {

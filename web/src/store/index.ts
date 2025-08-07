@@ -12,6 +12,9 @@ export const store = configureStore({
   },
 });
 
+// [0] is playerID
+export const PlayerID: { [key: number]: number } = {[0]: 0};
+
 export type AppDispatch = typeof store.dispatch;
 export type RootState = ReturnType<typeof store.getState>;
 export type AppThunk<ReturnType = void> = ThunkAction<ReturnType, RootState, unknown, Action<string>>;

@@ -9,7 +9,7 @@ import {
   getTotalWeight,
   useCurrentTime,
 } from '../../helpers';
-import { useAppSelector } from '../../store';
+import { PlayerID, useAppSelector } from '../../store';
 import { useIntersection } from '../../hooks/useIntersection';
 import { Locale } from '../../store/locale';
 import { Items } from '../../store/items';
@@ -187,7 +187,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-5 text-white font-medium">
-              <p className="text-lg">{inventory.label}</p>
+              <p className="text-lg">{inventory.type === 'player' && `[${PlayerID[0]}]`} {inventory.label}</p>
               <div className="flex items-center gap-1">
                 <span className="material-symbols-outlined">weight</span>
                 {inventory.maxWeight && (

@@ -5,7 +5,7 @@ import { Locale } from './store/locale';
 import { setImagePath } from './store/imagepath';
 import { setupInventory } from './store/inventory';
 import { Inventory } from './typings';
-import { useAppDispatch } from './store';
+import { PlayerID, useAppDispatch } from './store';
 import { debugData } from './utils/debugData';
 import DragPreview from './components/utils/DragPreview';
 import { fetchNui } from './utils/fetchNui';
@@ -158,13 +158,15 @@ const App: React.FC = () => {
   const manager = useDragDropManager();
 
   useNuiEvent<{
+    serverId: number;
     locale: { [key: string]: string };
     items: typeof Items;
     leftInventory: Inventory;
     imagepath: string;
-  }>('init', ({ locale, items, leftInventory, imagepath }) => {
+  }>('init', ({ serverId, locale, items, leftInventory, imagepath }) => {
     for (const name in locale) Locale[name] = locale[name];
     for (const name in items) Items[name] = items[name];
+    PlayerID[0] = serverId;
 
     setImagePath(imagepath);
     dispatch(setupInventory({ leftInventory }));
