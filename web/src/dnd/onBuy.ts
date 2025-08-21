@@ -20,7 +20,7 @@ export const onBuy = (source: SlotWithItem, account?: AccountType) => {
 
   if (sourceData === undefined) return console.error(`Item ${sourceSlot.name} data undefined!`);
 
-  const targetSlot = findAvailableSlot(sourceSlot, sourceData, targetInventory.items);
+  const targetSlot = findAvailableSlot(sourceSlot, sourceData, targetInventory.items, false, targetInventory.type);
 
   if (targetSlot === undefined) return console.error(`Target slot undefined`);
 

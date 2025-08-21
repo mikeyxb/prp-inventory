@@ -569,6 +569,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
                     <button 
                       className='w-6 h-6 bg-white/20 text-white flex items-center justify-center rounded-sm border border-white/50 duration-200 hover:bg-white/35'
                       onClick={() => setShoppingCart(prev => prev.map((shopItem, i) => i === index ? { ...shopItem, count: Math.max((shopItem.count || 1) - 1, 1) } : shopItem))}
+                      disabled={!Items[item.name].stack}
                     >
                       -
                     </button>
@@ -576,10 +577,12 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
                       type="number"
                       className='w-[50px] bg-transparent border border-transparent focus:outline-none focus:border-white text-white text-center font-semibold rounded-md transition-all'
                       value={(item.count || 1)}
+                      disabled={!Items[item.name].stack}
                       onChange={(e) => setShoppingCart(prev => prev.map((shopItem, i) => i === index ? { ...shopItem, count: Math.max(Number(e.target.value), 1) } : shopItem))}
                     />
                     <button 
                       className='w-6 h-6 bg-white/20 text-white flex items-center justify-center rounded-sm border border-white/50 duration-200 hover:bg-white/35'
+                      disabled={!Items[item.name].stack}
                       onClick={() => setShoppingCart(prev => prev.map((shopItem, i) => i === index ? { ...shopItem, count: (shopItem.count || 1) + 1 } : shopItem))}
                     >
                       +
