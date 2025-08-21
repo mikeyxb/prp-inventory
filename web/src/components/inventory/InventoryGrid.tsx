@@ -145,7 +145,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
       drop: (source) => {
         const audio = new Audio(dragSound);
         audio.play();
-        setShoppingCart(prev => [...prev, source.item])
+        setShoppingCart(prev => [...prev, { ...source.item, count: 1 }])
       },
       canDrop: (source) =>
         (source.inventory === 'shop')
