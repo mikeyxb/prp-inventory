@@ -1134,7 +1134,9 @@ function Inventory.AddItem(inv, item, count, metadata, slot, cb)
 
 				count -= 1
 				slotMetadata, slotCount = Items.Metadata(inv.id, item, metadata and table.clone(metadata) or {}, count)
-			elseif not toSlot and not slotData then
+			elseif not toSlot and not slotData and not inv.player then
+				toSlot = i
+			elseif not toSlot and not slotData and inv.player and i > 9 then
 				toSlot = i
 			end
 		end
