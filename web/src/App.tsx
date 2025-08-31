@@ -137,7 +137,7 @@ debugData([
             name: 'burger',
             price: 10,
             weight: 250,
-            count: 1
+            count: 10
           },
           {
             slot: 5,
@@ -145,7 +145,7 @@ debugData([
             price: 1000,
             metadata: { description: 'Surprise.' },
             weight: 1500,
-            count: 1
+            count: 5
           }
         ],
       }

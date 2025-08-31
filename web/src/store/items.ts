@@ -8,7 +8,7 @@ export const Items: {
     close: false,
     rarity: 'common',
     label: 'VODA',
-    stack: true,
+    stack: false,
     usable: true,
     count: 0,
   },
