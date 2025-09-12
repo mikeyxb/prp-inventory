@@ -227,7 +227,7 @@ const SplitContainer: React.FC<{
               [&::-webkit-slider-thumb]:appearance-none
               [&::-webkit-slider-thumb]:w-3.5
               [&::-webkit-slider-thumb]:h-3.5
-              [&::-webkit-slider-thumb]:bg-lime-500
+              [&::-webkit-slider-thumb]:bg-cyan-500
               [&::-webkit-slider-thumb]:rounded-full
               [&::-webkit-slider-thumb]:drop-shadow-[0_0_10px_#84cc16]"
             />
@@ -235,21 +235,21 @@ const SplitContainer: React.FC<{
           <div className="w-full flex items-center gap-2">
             <button
               className="bg-black/65 w-full py-1.5 border border-neutral-600 rounded
-            hover:bg-lime-500/20 hover:border-lime-500 duration-200"
+            hover:bg-cyan-500/20 hover:border-cyan-500 duration-200"
               onClick={() => quickSet(2)}
             >
               1/2
             </button>
             <button
               className="bg-black/65 w-full py-1.5 border border-neutral-600 rounded
-            hover:bg-lime-500/20 hover:border-lime-500 duration-200"
+            hover:bg-cyan-500/20 hover:border-cyan-500 duration-200"
               onClick={() => quickSet(3)}
             >
               1/3
             </button>
             <button
               className="bg-black/65 w-full py-1.5 border border-neutral-600 rounded
-            hover:bg-lime-500/20 hover:border-lime-500 duration-200"
+            hover:bg-cyan-500/20 hover:border-cyan-500 duration-200"
               onClick={() => quickSet(4)}
             >
               1/4
@@ -258,14 +258,14 @@ const SplitContainer: React.FC<{
           <div className="w-full flex items-center gap-2">
             <button
               className="bg-black/65 w-full py-1.5 border border-neutral-600 rounded text-sm
-            hover:bg-lime-500/20 hover:border-lime-500 duration-200"
+            hover:bg-cyan-500/20 hover:border-cyan-500 duration-200"
               onClick={close}
             >
               {Locale.ui_cancel || 'Cancel'}
             </button>
             <button
               className="bg-black/65 w-full py-1.5 border border-neutral-600 rounded text-sm
-            hover:bg-lime-500/20 hover:border-lime-500 duration-200"
+            hover:bg-cyan-500/20 hover:border-cyan-500 duration-200"
               onClick={split}
             >
               {Locale.ui_split || 'Split'}

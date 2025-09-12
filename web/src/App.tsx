@@ -47,6 +47,13 @@ debugData([
             metadata: { description: 'Delicious burger', durability: 27 },
           },
           {
+            slot: 6,
+            name: 'backpack',
+            weight: 1000,
+            count: 5,
+            metadata: { description: 'Delicious burger', durability: 27 },
+          },
+          {
             slot: 12,
             name: 'armour_plate',
             weight: 250,
@@ -54,54 +61,53 @@ debugData([
           }
         ],
       },
-      /*
-      rightInventory: {
-        id: 'shop',
-        type: 'crafting',
-        slots: 3,
-        label: 'YouTool',
-        weight: 3000,
-        maxWeight: 5000,
-        items: [
-          {
-            slot: 1,
-            name: 'lockpick',
-            weight: 500,
-            ingredients: {
-              burger: 1,
-              water: 2,
-            },
-            count: 1,
-            duration: 5000,
-            metadata: {
-              description: 'Simple lockpick that breaks easily and can pick basic door locks',
-            },
-          },
-          {
-            slot: 2,
-            name: 'burger',
-            weight: 250,
-            count: 1,
-            metadata: {
-              description: 'Simple lockpick that breaks easily and can pick basic door locks',
-            },
-          },
-          {
-            slot: 3,
-            name: 'armour',
-            weight: 1000,
-            ingredients: {
-              garbage: 7,
-            },
-            count: 2,
-            duration: 10000,
-          },
-        ],
-      },*/
+      // rightInventory: {
+      //   id: 'shop',
+      //   type: 'crafting',
+      //   slots: 3,
+      //   label: 'YouTool',
+      //   weight: 3000,
+      //   maxWeight: 5000,
+      //   items: [
+      //     {
+      //       slot: 1,
+      //       name: 'lockpick',
+      //       weight: 500,
+      //       ingredients: {
+      //         burger: 1,
+      //         water: 2,
+      //       },
+      //       count: 1,
+      //       duration: 5000,
+      //       metadata: {
+      //         description: 'Simple lockpick that breaks easily and can pick basic door locks',
+      //       },
+      //     },
+      //     {
+      //       slot: 2,
+      //       name: 'burger',
+      //       weight: 250,
+      //       count: 1,
+      //       metadata: {
+      //         description: 'Simple lockpick that breaks easily and can pick basic door locks',
+      //       },
+      //     },
+      //     {
+      //       slot: 3,
+      //       name: 'armour',
+      //       weight: 1000,
+      //       ingredients: {
+      //         garbage: 7,
+      //       },
+      //       count: 2,
+      //       duration: 10000,
+      //     },
+      //   ],
+      // },
       rightInventory: {
         id: 'shop',
         type: 'shop',
-        slots: 5,
+        slots: 10,
         label: 'YouTool',
         weight: 3000,
         maxWeight: 5000,
@@ -144,6 +150,20 @@ debugData([
             name: 'garbage',
             price: 1000,
             metadata: { description: 'Surprise.' },
+            weight: 1500,
+            count: 5
+          },
+          {
+            slot: 6,
+            name: 'kerosene',
+            price: 10,
+            weight: 1500,
+            count: 5
+          },
+          {
+            slot: 7,
+            name: 'boombox',
+            price: 10,
             weight: 1500,
             count: 5
           }

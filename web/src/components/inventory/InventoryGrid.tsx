@@ -95,6 +95,8 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
     });
   }, [inventory.items, page, craftQuery]);
 
+  // console.log('items: ', Items);
+
   // SHOP
   const [shoppingCart, setShoppingCart] = useState<SlotWithItem[]>([]);
   const [animatedTotal, setAnimatedTotal] = useState(0);
@@ -177,7 +179,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
     <>
       {inventory.type !== 'crafting' && inventory.type !== 'shop' && (
         <div
-          className={`bg-black/70 rounded-lg border border-neutral-500 w-[540px] absolute top-1/2 ${
+          className={`bg-black/70 rounded-lg border border-neutral-500 w-[660px] absolute top-1/2 ${
             inv === 'left' ? 'left-[16%]' : 'left-[84%]'
           } p-5`}
           style={{
@@ -218,12 +220,12 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
           </div>
           <div className="bg-black/65 w-full h-2 my-2 rounded-full border border-neutral-600 overflow-hidden">
             <div
-              className="bg-lime-500 h-full w-2"
+              className="bg-[#ff00ff] h-full w-2"
               style={{ width: `${inventory.maxWeight ? (weight / inventory.maxWeight) * 100 : 0}%` }}
             ></div>
           </div>
           <AccordionSection open={!closed.includes(inv)}>
-            <div className="grid grid-cols-4 h-[400px] overflow-y-scroll pr-1 gap-2">
+            <div className="grid grid-cols-5 h-[600px] overflow-y-scroll pr-1 gap-2">
               {filteredInventoryItems.map((item, index) => (
                 <InventorySlot
                   key={`${inventory.type}-${inventory.id}-${item.slot}`}
@@ -270,12 +272,12 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
               filteredCraftItems.map((item, index) => (
                 <div
                   className={`relative w-[120px] h-[120px] border border-transparent crafting-slot ${
-                    craftItem === item ? 'bg-lime-950/50' : 'bg-black/50'
-                  } rounded-lg cursor-pointer hover:bg-lime-950/50 group`}
+                    craftItem === item ? 'bg-cyan-950/50' : 'bg-black/50'
+                  } rounded-lg cursor-pointer hover:bg-cyan-950/50 group`}
                   onClick={() => setCraftItem(item as SlotWithItem)}
                   data-active={craftItem === item ? 'true' : 'false'}
                   style={{
-                    borderColor: craftItem === item ? '#84cc16' : undefined,
+                    borderColor: craftItem === item ? '#ff00ff' : undefined,
                   }}
                   key={`crafting-slot-${index}`}
                 >
@@ -289,10 +291,10 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
                   </p>
                   <p
                     className={`text-white absolute top-1 right-1 ${
-                      craftItem === item ? 'bg-lime-950/50' : 'bg-neutral-500/50'
+                      craftItem === item ? 'bg-cyan-950/50' : 'bg-neutral-500/50'
                     } rounded-full px-2 border ${
-                      craftItem === item ? 'border-lime-500' : 'border-transparent'
-                    } group-hover:bg-lime-950 group-hover:border-lime-500 duration-200`}
+                      craftItem === item ? 'border-cyan-500' : 'border-transparent'
+                    } group-hover:bg-cyan-950 group-hover:border-cyan-500 duration-200`}
                   >
                     {getCraftItemCount(item, reserved) === 'infinity' ? (
                       <i className="fa-solid fa-infinity"></i>
@@ -334,7 +336,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
                     <p className="text-neutral-400 text-xl">
                       {(Locale.crafting_time || 'Crafting Time').toUpperCase()}:
                     </p>
-                    <p className="text-white text-xl bg-lime-950/50 border border-lime-600 rounded-lg px-3 py-1.5">
+                    <p className="text-white text-xl bg-cyan-950/50 border border-cyan-600 rounded-lg px-3 py-1.5">
                       {(craftItem.duration ?? 3000) / 1000}s
                     </p>
                   </div>
@@ -353,7 +355,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
                           <div
                             key={`ingredient-${item}`}
                             className={`w-[80px] h-[75px] relative crafting-slot rounded-lg pointer-events-none ${
-                              hasEnough ? 'bg-lime-950/50' : 'bg-black/65'
+                              hasEnough ? 'bg-cyan-950/50' : 'bg-black/65'
                             }`}
                             data-active={hasEnough ? 'true' : 'false'}
                           >
@@ -412,7 +414,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
 
                     {/* Craft Button */}
                     <button
-                      className="bg-black/65 text-white w-full h-full text-lg rounded-2xl border border-neutral-600 hover:border-lime-600 hover:bg-lime-950/50 duration-200"
+                      className="bg-black/65 text-white w-full h-full text-lg rounded-2xl border border-neutral-600 hover:border-cyan-600 hover:bg-cyan-950/50 duration-200"
                       style={{
                         pointerEvents: canCraftItem(craftItem, inventory.type, reserved) ? 'auto' : 'none',
                         opacity: canCraftItem(craftItem, inventory.type, reserved) ? 1 : 0.5,
@@ -498,14 +500,14 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
         </div>
       )}
       {inventory.type === 'shop' && (
-        <div className={`font-[Inter] absolute top-1/2 ${ inv === 'left' ? 'left-[16%]' : 'left-[84%]' } w-[540px] flex flex-col gap-2`}
+        <div className={`font-[Inter] absolute top-1/2 ${ inv === 'left' ? 'left-[16%]' : 'left-[84%]' } w-[660px] flex flex-col gap-2`}
         style={{
           pointerEvents: isBusy ? 'none' : 'auto',
           transform: `translate(-50%, -50%) perspective(1000px) rotateY(${inv === 'left' ? '12deg' : '-12deg'})`,
         }}>
-          <div className={`bg-black/70 rounded-lg border border-neutral-500 p-5`}>
+          <div className={`bg-black/70 rounded-lg border border-cyan-500 p-5`}>
             <p className='text-white text-lg font-medium'>{inventory.label}</p>
-            <div className="grid grid-cols-4 pr-1 gap-2 mt-2 max-h-[240px] overflow-y-scroll">
+            <div className="grid grid-cols-5 pr-1 gap-2 mt-2 max-h-[440px] overflow-y-scroll">
               {filteredInventoryItems.map((item, index) => {
                 const isInCart = shoppingCart.some(shopItem => item.name === shopItem.name);
 
@@ -526,7 +528,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
               })}
             </div>
           </div>
-          <div className={`bg-black/70 rounded-lg border border-neutral-500 p-5`}>
+          <div className={`bg-black/70 rounded-lg border border-[#ff00ff] p-5`}>
             <p className='text-white text-lg font-medium'>{(Locale.shopping_cart || 'Shopping Cart')}</p>
 
             <div className="border-b border-neutral-600 my-5"></div>
@@ -605,7 +607,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
             <div className='flex items-center justify-end gap-3 mt-3'>
               {( !inventory.accounts || inventory.accounts.length === 0 || inventory.accounts.includes('bank') ) && (
                 <button className='text-white flex items-center gap-2 text-xl font-semibold bg-black/50 px-4 py-1.5 rounded-sm border border-neutral-700
-                hover:bg-lime-950/50 hover:border-lime-600 duration-200'
+                hover:bg-cyan-950/50 hover:border-cyan-600 duration-200'
                 onClick={() => handleBuy('bank')}>
                   <i className="hgi hgi-stroke hgi-credit-card"></i>
                   <p>{(Locale.pay_bank || 'Pay Bank')}</p>
@@ -613,7 +615,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
               )}
               {( !inventory.accounts || inventory.accounts.length === 0 || inventory.accounts.includes('money') ) && (
                 <button className='text-white flex items-center gap-2 text-xl font-semibold bg-black/50 px-4 py-1.5 rounded-sm border border-neutral-700
-                hover:bg-lime-950/50 hover:border-lime-600 duration-200'
+                hover:bg-cyan-950/50 hover:border-cyan-600 duration-200'
                 onClick={() => handleBuy('money')}>
                   <i className="hgi hgi-stroke hgi-coins-02"></i>
                   <p>{(Locale.pay_money || 'Pay Cash')}</p>
@@ -621,7 +623,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
               )}
               {( inventory.accounts?.includes('black_money') ) && (
                 <button className='text-white flex items-center gap-2 text-xl font-semibold bg-black/50 px-4 py-1.5 rounded-sm border border-neutral-700
-                hover:bg-lime-950/50 hover:border-lime-600 duration-200'
+                hover:bg-cyan-950/50 hover:border-cyan-600 duration-200'
                 onClick={() => handleBuy('black_money')}>
                   <i className="hgi hgi-stroke hgi-bitcoin-bag"></i>
                   <p>{(Locale.pay_black_money || 'Pay Dirty Cash')}</p>

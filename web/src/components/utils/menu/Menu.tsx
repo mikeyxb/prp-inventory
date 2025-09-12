@@ -253,7 +253,7 @@ export const MenuItem = React.forwardRef<
       ref={useMergeRefs([item.ref, forwardedRef])}
       type="button"
       role="menuitem"
-      className="outline-none hover:bg-lime-500/50 rounded py-1 duration-200 text-left px-2"
+      className="outline-none hover:bg-cyan-500/50 rounded py-1 duration-200 text-left px-2"
       tabIndex={isActive ? 0 : -1}
       disabled={disabled}
       {...menu.getItemProps({

@@ -16,7 +16,7 @@ const colorMixer = (rgbA: number[], rgbB: number[], amountToMix: number) => {
 const COLORS = {
   // Colors used - https://materialui.co/flatuicolors
   primaryColor: [231, 76, 60], // Red (Pomegranate)
-  secondColor: [39, 174, 96], // Green (Nephritis)
+  secondColor: [0, 255, 255], // cyan 
   accentColor: [211, 84, 0], // Orange (Oragne)
 };
 

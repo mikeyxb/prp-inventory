@@ -56,5 +56,32 @@ export const Items: {
     stack: true,
     usable: true,
     count: 0,
-  }
-};
+  },
+  kerosene: {
+    name: 'kerosene',
+    close: true,
+    label: 'Kerosene',
+    rarity: 'uncommon',
+    stack: true,
+    usable: true,
+    count: 0,
+  }, 
+  filter: {
+    name: 'filter',
+    close: true,
+    label: 'Filter',
+    rarity: 'common',
+    stack: true,
+    usable: true,
+    count: 0,
+  },
+  boombox: {
+    name: 'boombox',
+    close: true,
+    label: 'Boombox',
+    rarity: 'rare',
+    stack: true,
+    usable: true,
+    count: 0,
+  },
+}
