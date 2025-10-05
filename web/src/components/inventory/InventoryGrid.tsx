@@ -225,7 +225,7 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
             ></div>
           </div>
           <AccordionSection open={!closed.includes(inv)}>
-            <div className="grid grid-cols-5 h-[600px] overflow-y-scroll pr-1 gap-2">
+            <div className="grid grid-cols-5 h-[700px] overflow-y-scroll pr-1 gap-2">
               {filteredInventoryItems.map((item, index) => (
                 <InventorySlot
                   key={`${inventory.type}-${inventory.id}-${item.slot}`}

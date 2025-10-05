@@ -20,10 +20,10 @@ const Utilities: React.FC = () => {
 
     return (
         <div 
-            className="absolute top-1/2 left-[83%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center bg-black/80 rounded-lg p-5 border border-cyan-500"
+            className="absolute top-1/2 left-[50%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center bg-black/80 rounded-lg p-5 border border-cyan-500"
             style={{
                 pointerEvents: isBusy ? 'none' : 'auto',
-                transform: `translate(-50%, -50%) perspective(1000px) rotateY(-12deg)`,
+                transform: `translate(-50%, -50%) perspective(1000px) rotateY(0deg)`,
             }}
             ref={containerRef}
         >

@@ -78,7 +78,7 @@ const Inventory: React.FC = () => {
   return (
     <>
       <Fade in={inventoryVisible}>
-        <div className='font-[Oswald] text-[15px] text-white flex items-center gap-3 absolute top-5 right-5 z-10'>
+        {/* <div className='font-[Oswald] text-[15px] text-white flex items-center gap-3 absolute top-5 right-5 z-10'>
           <div className={`flex items-center gap-3 bg-black/65 px-5 py-2 rounded border transition-all duration-200 w-fit
             ${activeTab === 'inventories' ? 'border-cyan-500 bg-cyan-900/75' : 'border-neutral-600'}`}>
               <p className="bg-black/50 px-1.5 rounded-sm text-[13px]">Q</p>
@@ -89,17 +89,17 @@ const Inventory: React.FC = () => {
               <p>{(Locale.utilities || 'Utility').toUpperCase()}</p>
               <p className="bg-black/50 px-1.5 rounded-sm text-[13px]">E</p>
           </div>
-        </div>
+        </div> */}
         <div>
           <LeftInventory />
 
-          <Fade in={activeTab === 'inventories'}>
+          {/* <Fade in={activeTab === 'inventories'}> */}
             <RightInventory />
-          </Fade>
+          {/* </Fade> */}
 
-          <Fade in={activeTab === 'utilities'}>
+          {/* <Fade in={activeTab === 'utilities'}> */}
             <Utilities />
-          </Fade>
+          {/* </Fade> */}
 
           <Tooltip />
           <InventoryContext />
