@@ -1,16 +1,23 @@
 import { useRef, useState } from "react";
 import { useIntersection } from "../../hooks/useIntersection";
 import { useAppSelector } from "../../store";
-import { selectContainerInfo, selectContainerSlot, selectLeftInventory } from "../../store/inventory";
+import {
+    selectContainerInfo,
+    selectContainerInventory,
+    selectContainerSlot,
+    selectLeftInventory,
+} from "../../store/inventory";
 import InventorySlot from "./InventorySlot";
 import { Locale } from "../../store/locale";
 import useNuiEvent from "../../hooks/useNuiEvent";
 import { fetchNui } from "../../utils/fetchNui";
 import { Items } from "../../store/items";
+import { InventoryType } from "../../typings";
 
 const Utilities: React.FC = () => {
     const leftInventory = useAppSelector(selectLeftInventory);
     const containerSlot = useAppSelector(selectContainerSlot);
+    const containerInventory = useAppSelector(selectContainerInventory);
     const containerInfo = useAppSelector(selectContainerInfo);
 
     const containerRef = useRef(null);
@@ -21,6 +28,16 @@ const Utilities: React.FC = () => {
     useNuiEvent('showInjury', (show: boolean) => {
         setInjury(show);
     })
+
+    const isContainerOpen = !!(
+        containerSlot?.metadata?.container &&
+        containerInventory.type === InventoryType.CONTAINER &&
+        containerInventory.id === containerSlot.metadata.container
+    );
+
+    const containerButtonLabel = (isContainerOpen
+        ? (Locale.close_inventory || Locale.close || 'Close')
+        : (Locale.open_inventory || Locale.open || 'Open')).toUpperCase();
 
     return (
         <div 
@@ -103,9 +120,9 @@ const Utilities: React.FC = () => {
                                 </div>
                                 <button
                                     className="px-3 py-1.5 text-xs uppercase tracking-wide bg-cyan-900/60 border border-cyan-600 rounded hover:bg-cyan-800/70"
-                                    onClick={() => fetchNui('useItem', containerSlot.slot)}
+                                    onClick={() => containerSlot && fetchNui('useItem', containerSlot.slot)}
                                 >
-                                    {Locale.open || 'Open'}
+                                    {containerButtonLabel}
                                 </button>
                             </div>
                             <div className="mt-2 flex items-center gap-3 text-xs text-neutral-300">

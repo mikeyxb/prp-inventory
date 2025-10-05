@@ -34,18 +34,35 @@ const parseContainerSize = (size: unknown): [number | undefined, number | undefi
   return [undefined, undefined];
 };
 
-const findContainerSlot = (items: Slot[]): Slot | undefined => {
-  if (!items) return undefined;
-  return items.find((item) => item?.metadata?.container);
-};
+const findContainerSlot = (items: Slot[] = []): Slot | undefined =>
+  items.find((item) => item?.metadata?.container);
 
 export const updateContainerState = (state: State) => {
-  const containerSlot = findContainerSlot(state.leftInventory?.items ?? []);
+  const previousSlot = state.containerSlot?.slot;
+  const containerSlot = findContainerSlot(state.leftInventory?.items);
 
   if (!containerSlot?.name) {
+    if (typeof previousSlot === 'number' && state.leftInventory.items?.[previousSlot - 1]) {
+      state.leftInventory.items[previousSlot - 1] = { slot: previousSlot };
+    }
+
     state.containerSlot = undefined;
     state.containerInfo = undefined;
+    state.containerInventory = {
+      id: '',
+      type: '',
+      slots: 0,
+      maxWeight: 0,
+      items: [],
+    };
     return;
+  }
+
+  if (typeof previousSlot === 'number' && previousSlot !== containerSlot.slot) {
+    const leftSlot = state.leftInventory.items?.[previousSlot - 1];
+    if (leftSlot && leftSlot.metadata?.container) {
+      state.leftInventory.items[previousSlot - 1] = { slot: previousSlot };
+    }
   }
 
   const [slots, maxWeight] = parseContainerSize(containerSlot.metadata?.size);
