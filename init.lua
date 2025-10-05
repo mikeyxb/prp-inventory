@@ -24,6 +24,105 @@ shared = {
 
 shared.dropslots = GetConvarInt('inventory:dropslots', shared.playerslots)
 shared.dropweight = GetConvarInt('inventory:dropslotcount', shared.playerweight)
+shared.utilitySlots = { 6, 7, 8, 9 }
+shared.weaponSlots = { 1, 2 }
+
+do
+    local utilityLookup = {}
+
+    for i = 1, #shared.utilitySlots do
+        utilityLookup[shared.utilitySlots[i]] = true
+    end
+
+    shared.utilitySlotLookup = utilityLookup
+
+    local weaponLookup = {}
+
+    for i = 1, #shared.weaponSlots do
+        weaponLookup[shared.weaponSlots[i]] = true
+    end
+
+    shared.weaponSlotLookup = weaponLookup
+end
+
+local function normaliseItemName(name)
+    if type(name) ~= 'string' then return end
+
+    name = name:gsub('^%s+', ''):gsub('%s+$', '')
+
+    if name == '' then return end
+
+    local lower = string.lower(name)
+
+    if lower:sub(1, 7) == 'weapon_' then
+        return string.upper(lower)
+    end
+
+    return lower
+end
+
+local function buildSlotRestrictions()
+    local restrictions = {}
+    local utilitySlots = shared.utilitySlots
+
+    for i = 1, #utilitySlots do
+        local slot = utilitySlots[i]
+        local raw = GetConvar(('inventory:slot%ditems'):format(slot), '')
+
+        if raw ~= '' then
+            local decoded
+            local success, result = pcall(json.decode, raw)
+
+            if success then
+                decoded = result
+            end
+
+            local items
+
+            if type(decoded) == 'table' then
+                items = decoded
+            elseif type(decoded) == 'string' then
+                items = { decoded }
+            else
+                items = {}
+
+                for entry in raw:gmatch('[^,]+') do
+                    entry = entry:gsub('^%s+', ''):gsub('%s+$', '')
+
+                    if entry ~= '' then
+                        items[#items + 1] = entry
+                    end
+                end
+
+                if #items == 0 then
+                    items = nil
+                end
+            end
+
+            if items then
+                local slotRestrictions = {}
+
+                for i = 1, #items do
+                    local normalised = normaliseItemName(items[i])
+
+                    if normalised then
+                        slotRestrictions[normalised] = true
+                    end
+                end
+
+                if next(slotRestrictions) then
+                    restrictions[slot] = slotRestrictions
+                end
+            end
+        end
+    end
+
+    if next(restrictions) then
+        return restrictions
+    end
+end
+
+shared.slotRestrictions = buildSlotRestrictions()
 
 do
     if type(shared.police) == 'string' then

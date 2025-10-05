@@ -2,6 +2,54 @@ if not lib then return end
 
 local Inventory = {}
 
+local function normaliseItemName(name)
+	if type(name) ~= 'string' then return end
+
+	local lower = string.lower(name)
+
+	if lower:sub(1, 7) == 'weapon_' then
+		return string.upper(lower)
+	end
+
+	return lower
+end
+
+local function slotAllowsItem(inventory, slot, itemName)
+	if not inventory or inventory.type ~= 'player' or not slot or not itemName then
+		return true
+	end
+
+	local weaponLookup = shared.weaponSlotLookup
+
+	if weaponLookup and weaponLookup[slot] then
+		local normalised = normaliseItemName(itemName)
+
+		if not normalised then return false end
+
+		return normalised:find('^WEAPON_') ~= nil
+	end
+
+	local utilityLookup = shared.utilitySlotLookup
+
+	if not utilityLookup or not utilityLookup[slot] then
+		return true
+	end
+
+	local restrictions = shared.slotRestrictions
+
+	if not restrictions then return true end
+
+	local slotRestriction = restrictions[slot]
+
+	if not slotRestriction then return true end
+
+	local normalised = normaliseItemName(itemName)
+
+	if not normalised then return false end
+
+	return slotRestriction[normalised] == true
+end
+
 ---@type table<any, OxInventory>
 local Inventories = {}
 
@@ -847,6 +895,49 @@ function Inventory.Load(id, invType, owner)
 		end
 	end
 
+	if invType == 'player' and shared.slotRestrictions then
+		local pending, usedSlots = {}, {}
+		local playerStub = { type = 'player' }
+
+		for slot, data in pairs(returnData) do
+			usedSlots[slot] = true
+
+			if not slotAllowsItem(playerStub, slot, data.name) then
+				pending[#pending + 1] = { slot = slot, data = data }
+			end
+		end
+
+		if #pending > 0 then
+			for i = 1, #pending do
+				local entry = pending[i]
+				local originalSlot = entry.slot
+				local data = entry.data
+
+				usedSlots[originalSlot] = nil
+				returnData[originalSlot] = nil
+
+				local newSlot
+
+				for candidate = 1, shared.playerslots do
+					if not usedSlots[candidate] and slotAllowsItem(playerStub, candidate, data.name) then
+						newSlot = candidate
+						break
+					end
+				end
+
+				if newSlot then
+					data.slot = newSlot
+					returnData[newSlot] = data
+					usedSlots[newSlot] = true
+				else
+					data.slot = originalSlot
+					returnData[originalSlot] = data
+					usedSlots[originalSlot] = true
+				end
+			end
+		end
+	end
+
 	return returnData, weight
 end
 
@@ -1105,6 +1196,10 @@ function Inventory.AddItem(inv, item, count, metadata, slot, cb)
 	metadata = assertMetadata(metadata)
 
 	if slot then
+		if not slotAllowsItem(inv, slot, item.name) then
+			return false, 'slot_restricted'
+		end
+
 		local slotData = inv.items[slot]
 		slotMetadata, slotCount = Items.Metadata(inv.id, item, metadata and table.clone(metadata) or {}, count)
 
@@ -1124,20 +1219,26 @@ function Inventory.AddItem(inv, item, count, metadata, slot, cb)
 				toSlot = i
 				break
 			elseif not item.stack and not slotData then
-				if not toSlot then toSlot = {} end
+				if slotAllowsItem(inv, i, item.name) then
+					if not toSlot then toSlot = {} end
 
-				toSlot[#toSlot + 1] = { slot = i, count = slotCount, metadata = slotMetadata }
+					toSlot[#toSlot + 1] = { slot = i, count = slotCount, metadata = slotMetadata }
 
-				if count == slotCount then
-					break
+					if count == slotCount then
+						break
+					end
+
+					count -= 1
+					slotMetadata, slotCount = Items.Metadata(inv.id, item, metadata and table.clone(metadata) or {}, count)
 				end
-
-				count -= 1
-				slotMetadata, slotCount = Items.Metadata(inv.id, item, metadata and table.clone(metadata) or {}, count)
 			elseif not toSlot and not slotData and not inv.player then
-				toSlot = i
+				if slotAllowsItem(inv, i, item.name) then
+					toSlot = i
+				end
 			elseif not toSlot and not slotData and inv.player and i > 9 then
-				toSlot = i
+				if slotAllowsItem(inv, i, item.name) then
+					toSlot = i
+				end
 			end
 		end
 	end
@@ -1150,6 +1251,10 @@ function Inventory.AddItem(inv, item, count, metadata, slot, cb)
 	local toSlotType = type(toSlot)
 
 	if toSlotType == 'number' then
+		if not slotAllowsItem(inv, toSlot, item.name) then
+			return false, 'slot_restricted'
+		end
+
 		Inventory.SetSlot(inv, item, slotCount, slotMetadata, toSlot)
 
 		if inv.player and server.syncInventory then
@@ -1174,6 +1279,10 @@ function Inventory.AddItem(inv, item, count, metadata, slot, cb)
 
 		for i = 1, #toSlot do
 			local data = toSlot[i]
+
+			if not slotAllowsItem(inv, data.slot, item.name) then
+				return false, 'slot_restricted'
+			end
 			added += data.count
 			Inventory.SetSlot(inv, item, data.count, data.metadata, data.slot)
 			toSlot[i] = { item = inv.items[data.slot], inventory = inv.id }
@@ -1705,6 +1814,14 @@ lib.callback.register('ox_inventory:swapItems', function(source, data)
 		if fromData then
             if fromData.metadata.container and toInventory.type == 'container' then return false end
             if toData and toData.metadata.container and fromInventory.type == 'container' then return false end
+
+			if not slotAllowsItem(toInventory, data.toSlot, fromData.name) then
+				return false, 'slot_restricted'
+			end
+
+			if toData and not slotAllowsItem(fromInventory, data.fromSlot, toData.name) then
+				return false, 'slot_restricted'
+			end
 
 			local container, containerItem = (not sameInventory and playerInventory.containerSlot) and (fromInventory.type == 'container' and fromInventory or toInventory)
 
