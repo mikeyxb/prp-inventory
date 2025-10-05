@@ -3,6 +3,7 @@ import { itemDurability } from '../helpers';
 import { inventorySlice } from '../store/inventory';
 import { Items } from '../store/items';
 import { InventoryType, Slot, State } from '../typings';
+import { updateContainerState } from './setupInventory';
 
 export type ItemsPayload = { item: Slot; inventory?: InventoryType };
 
@@ -21,11 +22,17 @@ export const refreshSlotsReducer: CaseReducer<State, PayloadAction<Payload>> = (
     Object.values(action.payload.items)
       .filter((data) => !!data)
       .forEach((data) => {
-        const targetInventory = data.inventory
-          ? data.inventory !== InventoryType.PLAYER
-            ? state.rightInventory
-            : state.leftInventory
-          : state.leftInventory;
+        const targetInventory = (() => {
+          if (!data.inventory || data.inventory === InventoryType.PLAYER) {
+            return state.leftInventory;
+          }
+
+          if (data.inventory === InventoryType.CONTAINER) {
+            return state.containerInventory;
+          }
+
+          return state.rightInventory;
+        })();
 
         data.item.durability = itemDurability(data.item.metadata, curTime);
         targetInventory.items[data.item.slot - 1] = data.item;
@@ -60,6 +67,8 @@ export const refreshSlotsReducer: CaseReducer<State, PayloadAction<Payload>> = (
         ? 'leftInventory'
         : inventoryId === state.rightInventory.id
         ? 'rightInventory'
+        : inventoryId === state.containerInventory.id
+        ? 'containerInventory'
         : null;
 
     if (!inv) return;
@@ -76,6 +85,8 @@ export const refreshSlotsReducer: CaseReducer<State, PayloadAction<Payload>> = (
         ? 'leftInventory'
         : inventoryId === state.rightInventory.id
         ? 'rightInventory'
+        : inventoryId === state.containerInventory.id
+        ? 'containerInventory'
         : null;
 
     if (!inv) return;
@@ -85,8 +96,15 @@ export const refreshSlotsReducer: CaseReducer<State, PayloadAction<Payload>> = (
       type: 'setupInventory',
       payload: {
         leftInventory: inv === 'leftInventory' ? state[inv] : undefined,
-        rightInventory: inv === 'rightInventory' ? state[inv] : undefined,
+        rightInventory:
+          inv === 'rightInventory'
+            ? state[inv]
+            : inv === 'containerInventory'
+            ? state[inv]
+            : undefined,
       },
     });
   }
+
+  updateContainerState(state);
 };

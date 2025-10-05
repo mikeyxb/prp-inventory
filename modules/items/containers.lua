@@ -51,6 +51,12 @@ local function setContainerProperties(itemName, properties)
 	}
 end
 
+-- Default container registrations
+setContainerProperties('small_backpack', {
+	slots = 30,
+	maxWeight = 20000,
+})
+
 exports('setContainerProperties', setContainerProperties)
 
 return containers

@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AccountType, CraftSlot, DragSource, Inventory, SlotWithItem } from '../../typings';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { AccountType, CraftSlot, DragSource, Inventory, InventoryType, SlotWithItem } from '../../typings';
 import InventorySlot, { getColor } from './InventorySlot';
 import {
   canCraftItem,
@@ -10,6 +10,11 @@ import {
   useCurrentTime,
 } from '../../helpers';
 import { PlayerID, useAppSelector } from '../../store';
+import {
+  selectContainerInfo,
+  selectContainerInventory,
+  selectContainerSlot,
+} from '../../store/inventory';
 import { useIntersection } from '../../hooks/useIntersection';
 import { Locale } from '../../store/locale';
 import { Items } from '../../store/items';
@@ -22,6 +27,8 @@ import { useMergeRefs } from '@floating-ui/react';
 import { onBuy } from '../../dnd/onBuy';
 
 const PAGE_SIZE = 30;
+const MAX_PANEL_HEIGHT = 800;
+const MIN_SECTION_HEIGHT = 200;
 
 const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ inventory, inv }) => {
   const weight = useMemo(
@@ -34,6 +41,161 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
   const isBusy = useAppSelector((state) => state.inventory.isBusy);
   const [closed, setClosed] = useState<string[]>([]);
   const [query, setQuery] = useState<{ [key: string]: string }>({});
+  const containerInventoryState = useAppSelector(selectContainerInventory);
+  const containerSlot = useAppSelector(selectContainerSlot);
+  const containerInfo = useAppSelector(selectContainerInfo);
+  const [containerClosed, setContainerClosed] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const playerHeaderRef = useRef<HTMLDivElement>(null);
+  const playerGridRef = useRef<HTMLDivElement>(null);
+  const containerWrapperRef = useRef<HTMLDivElement>(null);
+  const containerHeaderRef = useRef<HTMLDivElement>(null);
+  const containerGridRef = useRef<HTMLDivElement>(null);
+
+  const showContainer = useMemo(
+    () =>
+      inv === 'left' &&
+      !!containerSlot &&
+      containerInventoryState.type === InventoryType.CONTAINER &&
+      containerSlot.metadata?.container === containerInventoryState.id,
+    [inv, containerSlot, containerInventoryState]
+  );
+
+  useEffect(() => {
+    if (!showContainer) {
+      setContainerClosed(false);
+    }
+  }, [showContainer]);
+
+  const containerWeight = useMemo(
+    () => (showContainer ? Math.floor(getTotalWeight(containerInventoryState.items) * 1000) / 1000 : 0),
+    [showContainer, containerInventoryState.items]
+  );
+
+  const containerMaxWeight = showContainer
+    ? containerInfo?.maxWeight ?? containerInventoryState.maxWeight ?? 0
+    : 0;
+
+  const containerLabel = useMemo(() => {
+    if (!showContainer || !containerSlot) return undefined;
+    if (containerInfo?.label) return containerInfo.label;
+    if (containerSlot.name) {
+      return Items[containerSlot.name]?.label || containerSlot.name;
+    }
+    return Locale.backpack || 'Backpack';
+  }, [showContainer, containerSlot, containerInfo]);
+
+  const containerSlotCount = showContainer ? containerInfo?.slots ?? containerInventoryState.slots : 0;
+  const backpackTitle = (Locale.backpack_inventory || Locale.backpack || 'Backpack Inventory').toUpperCase();
+
+  useLayoutEffect(() => {
+    const panelEl = panelRef.current;
+    const playerGridEl = playerGridRef.current;
+
+    if (!panelEl || !playerGridEl) return;
+
+    const getMarginTop = (element: HTMLElement | null) => {
+      if (!element) return 0;
+      const margin = window.getComputedStyle(element).marginTop;
+      return Number.parseFloat(margin || '0') || 0;
+    };
+
+    const getViewportLimit = () => {
+      const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : MAX_PANEL_HEIGHT;
+      const safeViewport = Math.max(viewportHeight - 160, MIN_SECTION_HEIGHT * 2);
+      return Math.min(MAX_PANEL_HEIGHT, safeViewport);
+    };
+
+    const updateHeights = () => {
+      if (!playerGridRef.current) return;
+
+      const playerHeaderHeight = playerHeaderRef.current?.offsetHeight ?? 0;
+      const maxPanelSpace = getViewportLimit();
+      let panelAvailable = Math.max(MIN_SECTION_HEIGHT, maxPanelSpace - playerHeaderHeight);
+
+      const shouldShowContainer = showContainer && !containerClosed && containerGridRef.current;
+
+      if (!shouldShowContainer) {
+        playerGridRef.current.style.maxHeight = `${panelAvailable}px`;
+        if (containerGridRef.current) {
+          containerGridRef.current.style.maxHeight = '0px';
+        }
+        return;
+      }
+
+      const containerHeaderHeight = containerHeaderRef.current?.offsetHeight ?? 0;
+      const containerMarginTop = getMarginTop(containerWrapperRef.current);
+
+      let availableForGrids = panelAvailable - containerMarginTop - containerHeaderHeight;
+      if (availableForGrids < MIN_SECTION_HEIGHT * 2) {
+        availableForGrids = MIN_SECTION_HEIGHT * 2;
+        panelAvailable = availableForGrids + containerMarginTop + containerHeaderHeight;
+      }
+
+      const playerSlots = Math.max(inventory.slots || inventory.items.length || 1, 1);
+      const containerSlots = Math.max(
+        containerSlotCount || containerInventoryState.slots || containerInventoryState.items.length || 1,
+        1
+      );
+
+      const totalSlots = playerSlots + containerSlots;
+      let playerHeight = Math.round((playerSlots / totalSlots) * availableForGrids);
+      let containerHeight = availableForGrids - playerHeight;
+
+      if (playerHeight < MIN_SECTION_HEIGHT) {
+        playerHeight = MIN_SECTION_HEIGHT;
+        containerHeight = availableForGrids - playerHeight;
+      }
+
+      if (containerHeight < MIN_SECTION_HEIGHT) {
+        containerHeight = MIN_SECTION_HEIGHT;
+        playerHeight = availableForGrids - containerHeight;
+      }
+
+      playerGridRef.current.style.maxHeight = `${playerHeight}px`;
+      containerGridRef.current!.style.maxHeight = `${containerHeight}px`;
+    };
+
+    const scheduleUpdate = () => {
+      if (typeof window !== 'undefined') {
+        window.requestAnimationFrame(updateHeights);
+      } else {
+        updateHeights();
+      }
+    };
+
+    scheduleUpdate();
+
+    const supportsResizeObserver = typeof ResizeObserver !== 'undefined';
+    let resizeObserver: ResizeObserver | undefined;
+
+    if (supportsResizeObserver) {
+      resizeObserver = new ResizeObserver(scheduleUpdate);
+      resizeObserver.observe(panelEl);
+      resizeObserver.observe(playerGridEl);
+      if (playerHeaderRef.current) resizeObserver.observe(playerHeaderRef.current);
+      if (containerHeaderRef.current) resizeObserver.observe(containerHeaderRef.current);
+      if (containerWrapperRef.current) resizeObserver.observe(containerWrapperRef.current);
+      if (containerGridRef.current) resizeObserver.observe(containerGridRef.current);
+    }
+
+    window.addEventListener('resize', scheduleUpdate);
+
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      window.removeEventListener('resize', scheduleUpdate);
+    };
+  }, [
+    showContainer,
+    containerClosed,
+    inventory.items.length,
+    inventory.slots,
+    containerInventoryState.items.length,
+    containerInventoryState.slots,
+    containerSlotCount,
+  ]);
 
   useEffect(() => {
     if (entry && entry.isIntersecting) {
@@ -179,53 +341,60 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
     <>
       {inventory.type !== 'crafting' && inventory.type !== 'shop' && (
         <div
-          className={`bg-black/70 rounded-lg border border-neutral-500 w-[660px] absolute top-1/2 ${
+          ref={panelRef}
+          className={`bg-black/90 rounded-lg border border-neutral-500 w-[660px] absolute top-1/2 max-h-[800px] overflow-hidden ${
             inv === 'left' ? 'left-[16%]' : 'left-[84%]'
-          } p-5`}
+          } p-5 flex flex-col`}
           style={{
             pointerEvents: isBusy ? 'none' : 'auto',
             transform: `translate(-50%, -50%) perspective(1000px) rotateY(${inv === 'left' ? '12deg' : '-12deg'})`,
           }}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-5 text-white font-medium">
-              <p className="text-lg">{inventory.type === 'player' && `[${PlayerID[0]}]`} {inventory.label}</p>
-              <div className="flex items-center gap-1">
-                <span className="material-symbols-outlined">weight</span>
-                {inventory.maxWeight && (
-                  <p>
-                    {weight / 1000}/{inventory.maxWeight / 1000}kg
-                  </p>
-                )}
+          <div ref={playerHeaderRef} className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-5 text-white font-medium">
+                <p className="text-lg">{inventory.type === 'player' && `[${PlayerID[0]}]`} {inventory.label}</p>
+                <div className="flex items-center gap-1">
+                  <span className="material-symbols-outlined">weight</span>
+                  {inventory.maxWeight && (
+                    <p>
+                      {weight / 1000}/{inventory.maxWeight / 1000}kg
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="text-white flex items-center gap-1">
+                <input
+                  type="text"
+                  className="bg-black/65 text-white focus:outline-none rounded px-2 py-1.5 border border-neutral-500/65 w-[150px]"
+                  onChange={(e) => setQuery((prev) => ({ ...prev, [inv]: e.target.value }))}
+                />
+                <span className="material-symbols-outlined">search</span>
+                <span
+                  className={`material-symbols-outlined cursor-pointer ${
+                    closed.includes(inv) ? 'rotate-180' : 'rotate-0'
+                  } transition-all duration-300`}
+                  onClick={() => {
+                    setClosed((prev) => (prev.includes(inv) ? prev.filter((id) => id !== inv) : [...prev, inv]));
+                  }}
+                >
+                  keyboard_arrow_up
+                </span>
               </div>
             </div>
-            <div className="text-white flex items-center gap-1">
-              <input
-                type="text"
-                className="bg-black/65 text-white focus:outline-none rounded px-2 py-1.5 border border-neutral-500/65 w-[150px]"
-                onChange={(e) => setQuery((prev) => ({ ...prev, [inv]: e.target.value }))}
-              />
-              <span className="material-symbols-outlined">search</span>
-              <span
-                className={`material-symbols-outlined cursor-pointer ${
-                  closed.includes(inv) ? 'rotate-180' : 'rotate-0'
-                } transition-all duration-300`}
-                onClick={() => {
-                  setClosed((prev) => (prev.includes(inv) ? prev.filter((id) => id !== inv) : [...prev, inv]));
-                }}
-              >
-                keyboard_arrow_up
-              </span>
+            <div className="bg-black/65 w-full h-2 rounded-full border border-neutral-600 overflow-hidden">
+              <div
+                className="bg-[#ff00ff] h-full w-2"
+                style={{ width: `${inventory.maxWeight ? (weight / inventory.maxWeight) * 100 : 0}%` }}
+              ></div>
             </div>
           </div>
-          <div className="bg-black/65 w-full h-2 my-2 rounded-full border border-neutral-600 overflow-hidden">
-            <div
-              className="bg-[#ff00ff] h-full w-2"
-              style={{ width: `${inventory.maxWeight ? (weight / inventory.maxWeight) * 100 : 0}%` }}
-            ></div>
-          </div>
-          <AccordionSection open={!closed.includes(inv)}>
-            <div className="grid grid-cols-5 h-[700px] overflow-y-scroll pr-1 gap-2">
+          <div className="flex-1 min-h-0">
+            <AccordionSection open={!closed.includes(inv)}>
+              <div
+                ref={playerGridRef}
+                className="grid grid-cols-5 overflow-y-auto pr-1 gap-2"
+              >
               {filteredInventoryItems.map((item, index) => (
                 <InventorySlot
                   key={`${inventory.type}-${inventory.id}-${item.slot}`}
@@ -237,8 +406,82 @@ const InventoryGrid: React.FC<{ inventory: Inventory; inv: string }> = ({ invent
                   query={query[inv]}
                 />
               ))}
+              </div>
+            </AccordionSection>
+          </div>
+
+          {showContainer && (
+            <div ref={containerWrapperRef} className="mt-8 flex flex-col min-h-0">
+              <div ref={containerHeaderRef} className="space-y-2">
+                <div className="flex items-center justify-between text-white">
+                  <div className="flex flex-col">
+                    <p className="text-neutral-400 text-xs tracking-wide">{backpackTitle}</p>
+                    <p className="text-lg font-semibold">{containerLabel}</p>
+                    {containerSlotCount ? (
+                      <p className="text-neutral-400 text-sm">
+                        {(Locale.slots || 'Slots').toUpperCase()}: {containerSlotCount}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1">
+                      <span className="material-symbols-outlined">weight</span>
+                      <p>
+                        {containerMaxWeight
+                          ? `${(containerWeight / 1000).toLocaleString('en-us', {
+                              minimumFractionDigits: 1,
+                            })}/${(containerMaxWeight / 1000).toLocaleString('en-us', {
+                              minimumFractionDigits: 1,
+                            })}kg`
+                          : `${(containerWeight / 1000).toLocaleString('en-us', {
+                              minimumFractionDigits: 1,
+                            })}kg`}
+                      </p>
+                    </div>
+                    <span
+                      className={`material-symbols-outlined cursor-pointer transition-transform duration-300 ${
+                        containerClosed ? 'rotate-180' : 'rotate-0'
+                      }`}
+                      onClick={() => setContainerClosed((prev) => !prev)}
+                    >
+                      keyboard_arrow_up
+                    </span>
+                  </div>
+                </div>
+                <div className="bg-black/65 w-full h-2 rounded-full border border-neutral-600 overflow-hidden">
+                  <div
+                    className="bg-[#00ffff] h-full w-2"
+                    style={{
+                      width: `${
+                        containerMaxWeight
+                          ? Math.min((containerWeight / containerMaxWeight) * 100, 100)
+                          : 0
+                      }%`,
+                    }}
+                  ></div>
+                </div>
+              </div>
+              <div className="flex-1 min-h-0">
+                <AccordionSection open={!containerClosed}>
+                  <div
+                    ref={containerGridRef}
+                    className="grid grid-cols-5 overflow-y-auto pr-1 gap-2"
+                  >
+                  {containerInventoryState.items.map((item, index) => (
+                    <InventorySlot
+                      key={`${containerInventoryState.type}-${containerInventoryState.id}-${item.slot}`}
+                      item={item}
+                      inventoryType={containerInventoryState.type}
+                      inventoryGroups={containerInventoryState.groups}
+                      inventoryId={containerInventoryState.id}
+                      query={query[inv]}
+                    />
+                  ))}
+                  </div>
+                </AccordionSection>
+              </div>
             </div>
-          </AccordionSection>
+          )}
         </div>
       )}
       {inventory.type === 'crafting' && (

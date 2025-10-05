@@ -1,13 +1,17 @@
 import { useRef, useState } from "react";
 import { useIntersection } from "../../hooks/useIntersection";
 import { useAppSelector } from "../../store";
-import { selectLeftInventory } from "../../store/inventory";
+import { selectContainerInfo, selectContainerSlot, selectLeftInventory } from "../../store/inventory";
 import InventorySlot from "./InventorySlot";
 import { Locale } from "../../store/locale";
 import useNuiEvent from "../../hooks/useNuiEvent";
+import { fetchNui } from "../../utils/fetchNui";
+import { Items } from "../../store/items";
 
 const Utilities: React.FC = () => {
     const leftInventory = useAppSelector(selectLeftInventory);
+    const containerSlot = useAppSelector(selectContainerSlot);
+    const containerInfo = useAppSelector(selectContainerInfo);
 
     const containerRef = useRef(null);
     const { ref, entry } = useIntersection({ threshold: 0.5 });
@@ -33,8 +37,8 @@ const Utilities: React.FC = () => {
                     <div className="flex flex-col gap-2">
                         <p className="text-white font-medium text-sm">{(Locale.backpack || 'Backpack').toUpperCase()}</p>
                         <InventorySlot
-                            key={`${leftInventory.type}-${leftInventory.id}-${leftInventory.items[5].slot}`}
-                            item={leftInventory.items[5]}
+                            key={`${leftInventory.type}-${leftInventory.id}-${(containerSlot ?? leftInventory.items[5]).slot}`}
+                            item={containerSlot ?? leftInventory.items[5]}
                             ref={ref}
                             inventoryType={leftInventory.type}
                             inventoryGroups={leftInventory.groups}
@@ -88,6 +92,51 @@ const Utilities: React.FC = () => {
 
                 {/* MIDDLE */}
                 <div>
+                    {containerSlot?.metadata?.container && (
+                        <div className="w-full text-white bg-black/60 border border-neutral-600 rounded-md p-3">
+                            <div className="flex items-center justify-between">
+                                <div className="flex flex-col gap-0.5">
+                                    <p className="text-[11px] text-neutral-300">{(Locale.backpack_inventory || 'Backpack Inventory').toUpperCase()}</p>
+                                    <p className="text-sm font-semibold">
+                                        {containerInfo?.label || (containerSlot.name ? Items[containerSlot.name]?.label || containerSlot.name : Locale.backpack || 'Backpack')}
+                                    </p>
+                                </div>
+                                <button
+                                    className="px-3 py-1.5 text-xs uppercase tracking-wide bg-cyan-900/60 border border-cyan-600 rounded hover:bg-cyan-800/70"
+                                    onClick={() => fetchNui('useItem', containerSlot.slot)}
+                                >
+                                    {Locale.open || 'Open'}
+                                </button>
+                            </div>
+                            <div className="mt-2 flex items-center gap-3 text-xs text-neutral-300">
+                                <div className="flex items-center gap-1">
+                                    <span className="material-symbols-outlined text-base">weight</span>
+                                    <p>
+                                        {((containerInfo?.currentWeight ?? 0) / 1000).toLocaleString('en-us', {
+                                            minimumFractionDigits: 1,
+                                        })}
+                                        /
+                                        {((containerInfo?.maxWeight ?? 0) / 1000).toLocaleString('en-us', {
+                                            minimumFractionDigits: 1,
+                                        })}kg
+                                    </p>
+                                </div>
+                                {containerInfo?.slots && (
+                                    <p className="text-xs">
+                                        {(Locale.slots || 'Slots').toUpperCase()}: {containerInfo.slots}
+                                    </p>
+                                )}
+                            </div>
+                            <div className="bg-black/65 w-full h-1.5 mt-2 rounded-full border border-neutral-700 overflow-hidden">
+                                <div
+                                    className="bg-[#00ffff] h-full"
+                                    style={{
+                                        width: `${containerInfo?.maxWeight ? Math.min(((containerInfo?.currentWeight ?? 0) / containerInfo.maxWeight) * 100, 100) : 0}%`
+                                    }}
+                                ></div>
+                            </div>
+                        </div>
+                    )}
                     <div className="relative">
                         <svg width="260" height="517" viewBox="0 0 260 517" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <g opacity="0.53">

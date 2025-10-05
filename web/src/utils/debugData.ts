@@ -3,6 +3,7 @@ import { isEnvBrowser } from './misc';
 interface DebugEvent<T = any> {
   action: string;
   data: T;
+  delay?: number;
 }
 
 /**
@@ -14,7 +15,9 @@ interface DebugEvent<T = any> {
  */
 export const debugData = <P>(events: DebugEvent<P>[], timer = 1000): void => {
   if (import.meta.env.DEV && isEnvBrowser()) {
-    for (const event of events) {
+    events.forEach((event) => {
+      const delay = typeof event.delay === 'number' ? event.delay : timer;
+
       setTimeout(() => {
         window.dispatchEvent(
           new MessageEvent('message', {
@@ -24,7 +27,7 @@ export const debugData = <P>(events: DebugEvent<P>[], timer = 1000): void => {
             },
           })
         );
-      }, timer);
-    }
+      }, delay);
+    });
   }
 };
